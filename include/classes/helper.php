@@ -18,9 +18,23 @@ class SepHelper
     public $plugin_path = ''; //The path to the plugin folder
 
 
+    /**
+     * Adds actions, filters and shortcodes
+     *
+     * @return void
+     */
     public function add_actions()
     {
         add_action('admin_menu', [$this, 'add_menu']);
+        add_action('wp_head', [$this, 'sep_add_additional_js']);
+        add_action('admin_head', [$this, 'sep_add_additional_js']);
+
+        //Shortcodes
+        add_shortcode( 'sep_picklist', [$this, 'render_picklist_shortcode'] );
+
+        //Ajax actions
+        add_action('wp_ajax_sep_order_functions', [new SepAjax, 'sep_order_functions']);
+        add_action('wp_ajax_nopriv_sep_order_functions', [new SepAjax, 'sep_order_functions_nopriv']);
     }
 
     /**
@@ -97,6 +111,15 @@ class SepHelper
     }
 
     /**
+     * Renders the picklist from the shortcode.
+     *
+     * @return void
+     */
+    public function render_picklist_shortcode(){
+        return $this->load_template_to_var('frontend-options-page', 'frontend/');
+    }
+
+    /**
      * Enqueue the styles of the plugin
      * Located at: plugins/super-easy-picklist-for-woocommerce/style/admin-style.css
      *
@@ -115,7 +138,15 @@ class SepHelper
      */
     public function sep_enqueue_admin_scripts()
     {
-        wp_enqueue_script('sep-admin-script', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/include/js/sep-main-script.min.js', array('jquery'), $this->version);
+        $min = (WP_DEBUG) ? '' : '.min' ; //Loads the Min version of the script not WP_DEBUG
+        wp_enqueue_script('sep-admin-script', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/include/js/sep-main-script'.$min.'.js', array('jquery'), $this->version);
+    }
+
+
+    public function sep_add_additional_js(){
+            $ajax_url =  admin_url('admin-ajax.php');
+            echo "<script type='text/javascript'>document.ajax_url = '$ajax_url';</script>";
+            return;
     }
 
     /**

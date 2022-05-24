@@ -39,5 +39,7 @@ if (!defined('ABSPATH')) {
  */
 require_once('include/classes/helper.php');
 require_once('include/classes/backend-main.php');
+require_once('include/classes/ajax-functions.php');
+require_once('include/classes/order.php');
 
 $sep = new SepBackendMain;
