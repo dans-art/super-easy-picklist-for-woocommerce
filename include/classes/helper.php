@@ -103,8 +103,8 @@ class SepHelper
             __('Super Easy Picklist', 'sep'),
             __('Super Easy Picklist', 'sep'),
             'manage_options',
-            'super-easy-picklist-for-woocommerce/templates/backend/backend-options-page.php',
-            '',
+            'super-easy-picklist-for-woocommerce',
+            [$this, 'render_picklist_backend'],
             $icon_url,
             58
         );
@@ -117,6 +117,14 @@ class SepHelper
      */
     public function render_picklist_shortcode(){
         return $this->load_template_to_var('frontend-options-page', 'frontend/');
+    }
+    /**
+     * Renders the picklist for the bandend.
+     *
+     * @return void
+     */
+    public function render_picklist_backend(){
+        echo $this->load_template_to_var('backend-options-page', 'backend/');
     }
 
     /**
