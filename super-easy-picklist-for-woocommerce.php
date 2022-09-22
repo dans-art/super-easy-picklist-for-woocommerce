@@ -7,8 +7,8 @@
  * Contributors: dansart
  * Contributors URL: http://dev.dans-art.ch
  * Tags: woocommerce, customer, tools, helper
- * Version: 1.0
- * Stable tag: 1.0
+ * Version: 0.1
+ * Stable tag: 0.1
  * 
  * Requires at least: 5.4.0
  * Tested up to: 5.9
@@ -34,10 +34,17 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-/**
- * Load the classes
- */
+//Load the Plugins 
+require_once('include/plugins/da-template-handler.php');
+require_once('include/plugins/da-ajax-handler.php');
+
+// Load the classes
+require_once('include/classes/ajax-functions.php');
 require_once('include/classes/helper.php');
 require_once('include/classes/backend-main.php');
+
+//Define the constants
+define('SEP_PATH', plugin_dir_path( __FILE__ ));
+define('SEP_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ));
 
 $sep = new SepBackendMain;

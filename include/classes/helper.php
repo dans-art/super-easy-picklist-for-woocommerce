@@ -16,11 +16,19 @@ class SepHelper
 {
     protected $version = '000'; //The current plugin version. This is used to make sure that on plugin update, the styles and scripts will be cleared from the cache.
     public $plugin_path = ''; //The path to the plugin folder
+    protected $ajax_included = false;
 
 
     public function add_actions()
     {
+        //Add the backend menu
         add_action('admin_menu', [$this, 'add_menu']);
+        add_action('admin_head', [$this, 'enqueue_ajax_functions']);
+        add_action('admin_enqueue_scripts', [$this, 'sep_enqueue_scripts']);
+
+        //Ajax actions
+        add_action('wp_ajax_sep_ajax_orders', [new SepAjax, 'sep_ajax_orders']);
+        add_action('wp_ajax_nopriv_sep_ajax_orders', [new SepAjax, 'sep_ajax_nopriv_all']);
     }
 
     /**
@@ -49,8 +57,19 @@ class SepHelper
     {
         //Search also in the wp-content/language folder
         load_textdomain('sep', $this->sep_get_home_path() . 'wp-content/languages/plugins/super-easy-picklist-for-woocommerce-' . determine_locale() . '.mo');
+        
         //Try to load the file from the plugin-dir
         load_textdomain('sep', $this->sep_get_home_path() . 'wp-content/plugins/super-easy-picklist-for-woocommerce/languages/sep-' . determine_locale() . '.mo');
+    }
+
+    /**
+     * Enqueues all the scripts and styles
+     *
+     * @return void
+     */
+    public function sep_enqueue_scripts(){
+        $this->sep_enqueue_admin_style();
+        $this->sep_enqueue_admin_scripts();
     }
 
     /**
@@ -84,16 +103,27 @@ class SepHelper
      */
     public function add_menu()
     {
-        $icon_url = '';
+        $icon_url = SEP_PLUGIN_DIR_URL . 'assets/images/sep-logo.png';
         add_menu_page(
             __('Super Easy Picklist', 'sep'),
             __('Super Easy Picklist', 'sep'),
             'manage_options',
-            'super-easy-picklist-for-woocommerce/templates/backend/backend-options-page.php',
-            '',
+            'super-easy-picklist',
+            [$this, 'render_backend_option_page'],
             $icon_url,
             58
         );
+    }
+
+    /**
+     * Displays the options page
+     *
+     * @return void
+     */
+    public function render_backend_option_page()
+    {
+        DaTemplateHandler::load_template('backend-options-page', 'backend', ["plugin_path" => SEP_PATH . 'templates']);
+        //'super-easy-picklist-for-woocommerce/templates/backend/backend-options-page.php',
     }
 
     /**
@@ -115,7 +145,27 @@ class SepHelper
      */
     public function sep_enqueue_admin_scripts()
     {
-        wp_enqueue_script('sep-admin-script', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/include/js/sep-main-script.min.js', array('jquery'), $this->version);
+        $min = ($this->is_dev_server()) ? '' : '.min';
+        wp_enqueue_script('sep-admin-script', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/include/js/sep-main-script'.$min.'.js', array('wp-i18n', 'jquery'), $this->version);
+        wp_set_script_translations('sep-admin-script', 'sep', SEP_PATH . "/languages");
+    }
+
+    /**
+     * Called by the wp_head action. Will include some js variables for the ajax functions
+     *
+     * @return void
+     */
+    public function enqueue_ajax_functions()
+    {
+        if ($this->ajax_included === false) {
+            //Add dynamic script to header
+            echo "<script type='text/javascript' defer='defer'>
+                var ajaxurl = '" . admin_url('admin-ajax.php') . "';
+                var sep_plugin_dir_url = '" . SEP_PLUGIN_DIR_URL . "';
+                </script>";
+            $this->ajax_included = true;
+        }
+        return;
     }
 
     /**
@@ -149,44 +199,18 @@ class SepHelper
     }
 
     /**
-     * Loads template to variable.
-     * @param string $template_name - Name of the template without extension
-     * @param string $subfolder - Name of the Subfolder(s). Base folder is Plugin_dir/templates/
-     * @param string $template_args - Arguments to pass to the template
-     * 
-     * @return string Template content or error Message
-     */
-    public function load_template_to_var(string $template_name = '', string $subfolder = '', ...$template_args)
-    {
-        $args = get_defined_vars();
-        $path = $this->get_template_location($template_name, $subfolder);
-
-        if (file_exists($path)) {
-            ob_start();
-            include($path);
-            $output_string = ob_get_contents();
-            ob_end_clean();
-            wp_reset_postdata();
-            return $output_string;
-        }
-        return sprintf(__('Template "%s" not found! (%s)', 'sep'), $template_name, $path);
-    }
-
-    /**
-     * Function to find the template file. First the Child-Theme will be checked. If not found, the file in the plugin will be returned.
+     * Evaluates if the current server is a development server
      *
-     * @param string $template_name - The name of the template.
-     * @param string $subfolder - The subfolder the template is in. With tailing \
-     * @return string The location of the file.
+     * @return boolean
      */
-    public function get_template_location($template_name, $subfolder)
+    public function is_dev_server()
     {
-        //Checks if the file exists in the theme or child-theme folder
-        $locate = locate_template('woocommerce/super-easy-picklist/' . $subfolder . $template_name . '.php');
-        if (empty($locate)) {
-            return str_replace('\\', '/', $this->plugin_path . 'templates/' . $subfolder . $template_name . '.php');
+        $url = get_site_url();
+        $pos = strpos($url, "localhost/wordpress");
+        if ($pos <= 8 and $pos > 2) {
+            return true;
         }
-        return str_replace('\\', '/', $locate);
+        return false;
     }
 
     /**
