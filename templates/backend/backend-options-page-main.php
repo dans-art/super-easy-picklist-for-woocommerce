@@ -29,17 +29,3 @@ if (!$order) : ?>
 else : ?>
 <?php endif; ?>
 
-<div id="order-information">
-
-</div>
-<div id="picklist-container">
-    <div id="picklist">
-
-    </div>
-    <div id="tracking-code">
-
-    </div>
-    <div id="order-status">
-
-    </div>
-</div>

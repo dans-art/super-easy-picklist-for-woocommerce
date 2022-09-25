@@ -6,6 +6,9 @@
  */
 let sep_scripts = {
 
+    loaded_orders: [],
+    templates : [], //Storage for the templates.
+
     construct() {
 
         jQuery(document).ready(function () {
@@ -23,6 +26,10 @@ let sep_scripts = {
             e.preventDefault();
             sep_scripts.find_orders();
         });
+        jQuery('#order-section-content').on('click', '.sep-order-item', (e) => {
+            let order_id = jQuery(e.currentTarget).data('order-id');
+            sep_scripts.load_single_order(order_id);
+        });
     },
 
     /**
@@ -30,28 +37,31 @@ let sep_scripts = {
      * @param {object} field The input field 
      */
     async find_orders() {
-        jQuery('#order-section-content').html(__('Loading orders...','sep'));
+        jQuery('#order-section-content').html(__('Loading orders...', 'sep'));
         let value = jQuery('#sep-order-search-input').val();
         let send_data = new FormData();
         send_data.append('action', 'sep_ajax_orders');
-        send_data.append('order_id', value);
+        send_data.append('do', 'get_orders');
+        send_data.append('search', value);
         const ajax_response = await this.load_ajax(send_data);
         const found_orders = this.get_ajax_success_answer(ajax_response);
         if (empty(found_orders)) {
             jQuery('#order-section-errors').append(__('Error while loading the Order', 'sep') + '<br/>' + this.get_ajax_error_answer(ajax_response));
             return;
         }
+        //Add the current order to the object properties
+        this.loaded_orders = found_orders;
         await sep_scripts.get_template("order-details.html", 'templates/backend/components/').then(function (content) {
             if (typeof found_orders === 'object') {
-                var output = '';
+                var output = '<h2>' + __('Found Orders', 'sep') + '</h2>';
                 jQuery.each(found_orders, (index, order) => {
 
                     output += sep_scripts.add_templage_args(content,
                         {
-                            order_number: order.order_number,
-                            name : order.name,
-                            amount : order.amount,
-                            date: order.date,
+                            order_number: order.id,
+                            name: order.billing.first_name + ' ' + order.billing.last_name,
+                            amount: order.total + ' ' + order.currency,
+                            date: order.date_created.date,
                         }
                     );
                 });
@@ -63,7 +73,22 @@ let sep_scripts = {
     },
 
     async load_single_order(order_id) {
-
+        //Find the order in the loaded orders
+        this.loaded_orders.forEach(async function (order_obj) {
+            if (order_obj.id === order_id) {
+                await sep_scripts.get_template("single-order.html", 'templates/backend/components/').then(function (content) {
+                    if (typeof order_obj === 'object') {
+                        var output = sep_scripts.add_templage_args(content,
+                            {
+                                order_title: __('Order', 'sep'),
+                                name: order_obj.billing.first_name + ' ' + order_obj.billing.last_name,
+                            }
+                        );
+                    }
+                    jQuery('#order-section-content').html(output);
+                });
+            }
+        })
     },
 
     /**
@@ -146,7 +171,7 @@ let sep_scripts = {
 
     add_templage_args(template_string, args = {}) {
         jQuery.each(args, (index, value) => {
-            template_string = template_string.replace('{{' + index + '}}', value);
+            template_string = template_string.replaceAll('{{' + index + '}}', value);
         });
         return template_string;
     },

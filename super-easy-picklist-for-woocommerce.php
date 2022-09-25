@@ -42,6 +42,7 @@ require_once('include/plugins/da-ajax-handler.php');
 require_once('include/classes/ajax-functions.php');
 require_once('include/classes/helper.php');
 require_once('include/classes/backend-main.php');
+require_once('include/classes/order-handler.php');
 
 //Define the constants
 define('SEP_PATH', plugin_dir_path( __FILE__ ));
