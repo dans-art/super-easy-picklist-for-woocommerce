@@ -1,15 +1,32 @@
 <h2>{{order_title}}</h2>
 <div class='sep-single-order-item' id="order-information">
-    Name: {{name}}
+    <div class="order-id">
+        Order #{{order_id}}
+        <button id="edit_order">{{edit_order_text}}</button>
+        <button id="select_another_order">{{select_another_order_text}}</button>
+    </div>
+    <div class="billing-address">
+        <h2>{{billing_address_text}}</h2>
+        {{billing_address}}
+
+    </div>
+    <div class="shipping-address">
+        <h2>{{shipping_address_text}}</h2>
+        {{shipping_address}}
+    </div>
 </div>
 <div id="picklist-container">
+    <h2>{{picklist_title}}</h2>
+    <input type="text" id="picklist_code_input" placeholder="{{picklist_input_placeholder}}"/>
     <div id="picklist">
-        PL
+        {{picklist_content}}
     </div>
     <div id="tracking-code">
-        Track
+        <h2>{{tracking_title}}</h2>
+        {{tracking_content}}
     </div>
     <div id="order-status">
-Stat
+        <h2>{{status_title}}</h2>
+        {{status_content}}
     </div>
 </div>

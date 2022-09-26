@@ -134,7 +134,8 @@ class SepHelper
      */
     public function sep_enqueue_admin_style()
     {
-        wp_enqueue_style('sep-admin-style', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/style/admin-style.css', array(), $this->version);
+        wp_enqueue_style( 'sep-fa', 'https://use.fontawesome.com/releases/v6.2.0/css/all.css' );
+        wp_enqueue_style('sep-admin-style', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/style/admin-style.css', array('sep-fa'), $this->version);
     }
 
     /**

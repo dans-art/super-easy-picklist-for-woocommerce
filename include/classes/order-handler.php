@@ -41,8 +41,9 @@ class SepOrder
             $items = $order -> get_items();
 
             if(is_array($items)){
-                foreach($items as $index => $item){
+                foreach($items as $index => $item){ //WC_Order_Item_Product 
                     $order_data['line_items'][$index] = $item->get_data();
+                    $order_data['line_items'][$index]['sku'] = $item->get_product()->get_sku();
                 }
             }
             return $order_data;

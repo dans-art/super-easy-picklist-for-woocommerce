@@ -17,10 +17,10 @@ $order = isset($_GET['order_id']) ? $_GET['order_id'] : false;
 //Display the order form to search for an order
 if (!$order) : ?>
     <form id='sep_picklist_page' action="<?php echo $page; ?>" method="post" enctype="multipart/form-data">
-
-        <input type="text" name="sep-order-search-input" id="sep-order-search-input" />
-        <button id="sep-order-search"><?php echo __('Search Order','sep'); ?></button>
-
+        <div id='sep-order-search-input-container'>
+            <input type="text" name="sep-order-search-input" id="sep-order-search-input" />
+            <button id="sep-order-search"><?php echo __('Search Order', 'sep'); ?></button>
+        </div>
     </form>
     <div id="order-section-content"></div>
     <div id="order-section-errors" class="sep-errors"></div>
@@ -28,4 +28,3 @@ if (!$order) : ?>
 //Displays the picklist
 else : ?>
 <?php endif; ?>
-
