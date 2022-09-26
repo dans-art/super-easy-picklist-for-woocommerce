@@ -1,3 +1,11 @@
 <div class='sep-tracking' >
-Codes
+    <select id="tracking-providers">
+        {{tracking_providers}}
+    </select>
+    <input type="text" id="tracking-code-input" /><button id="add-tracking-code-button"><i class="fa-solid fa-plus"></i></button>
+    <div id="current-tracking-codes-container">
+        {{current_tracking_codes}}
+    </div>
+    <div id="tracking-codes-errors" class="sep-error-container">
+    </div>
 </div>

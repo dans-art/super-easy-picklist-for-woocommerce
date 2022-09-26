@@ -19,6 +19,13 @@ let sep_scripts = {
             //Preload the templates
             sep_scripts.load_template('order_details', 'order-details.html', 'templates/backend/components/');
             sep_scripts.load_template('single_order', 'single-order.html', 'templates/backend/components/');
+
+            const order_from_url = sep_scripts.get_order_from_url();
+            if (!empty(order_from_url)) {
+                sep_scripts.find_orders(order_from_url).then(() => {
+                    sep_scripts.load_single_order(parseInt(order_from_url));
+                });
+            }
         });
     },
     /**
@@ -37,7 +44,7 @@ let sep_scripts = {
         });
         //On barcode input
         jQuery('#order-section-content').on('keydown', '#picklist_code_input', (e) => {
-            if(e.which !== 13){
+            if (e.which !== 13) {
                 return;
             }
             let barcode = jQuery(e.currentTarget).val();
@@ -46,10 +53,16 @@ let sep_scripts = {
             jQuery(e.currentTarget).val('');
         });
         //Button actions
+        //Select another order
         jQuery('#order-section-content').on('click', '#select_another_order', (e) => {
             jQuery('#order-section-content').html('');
             jQuery('#sep-order-search-input-container').show();
         });
+        //Add Tracking code
+        jQuery('#order-section-content').on('click', '#add-tracking-code-button', (e) => {
+            sep_scripts.add_tracking_code();
+        });
+        //Increase or decrease the quantity
         jQuery('#order-section-content').on('click', '.modify_product_quantity', (e) => {
             let line_id = jQuery(e.currentTarget).data('line-id');
             let action = jQuery(e.currentTarget).data('action');
@@ -97,17 +110,23 @@ let sep_scripts = {
      * 
      * @param {object} field The input field 
      */
-    async find_orders() {
+    async find_orders(order_id) {
         jQuery('#order-section-content').html(__('Loading orders...', 'sep'));
-        let value = jQuery('#sep-order-search-input').val();
         let send_data = new FormData();
         send_data.append('action', 'sep_ajax_orders');
-        send_data.append('do', 'get_orders');
-        send_data.append('search', value);
+        if(empty(order_id)){
+            let value = jQuery('#sep-order-search-input').val();
+            send_data.append('do', 'get_orders');
+            send_data.append('search', value);
+        }
+        else{
+            send_data.append('do', 'get_single_order');
+            send_data.append('order_id', order_id);
+        }
         const ajax_response = await this.load_ajax(send_data);
         const found_orders = this.get_ajax_success_answer(ajax_response);
         if (empty(found_orders)) {
-            jQuery('#order-section-errors').append(__('Error while loading the Order', 'sep') + '<br/>' + this.get_ajax_error_answer(ajax_response));
+            sep_scripts.display_error(sep_scripts.get_ajax_error_answer(ajax_response),'#order-section-errors');
             return;
         }
         //Add the current order to the object properties
@@ -138,7 +157,7 @@ let sep_scripts = {
         this.loaded_orders.forEach(async function (order_obj) {
             if (order_obj.id === order_id) {
                 var order_items = await sep_scripts.display_products_items_box(order_obj.line_items); //Format the products
-                var tracking_data = await sep_scripts.display_tracking_box(order_obj); //Format the tracking codes
+                var tracking_data = await sep_scripts.display_tracking_box(order_obj.tracking); //Format the tracking codes
                 var status = await sep_scripts.display_status_box(order_obj); //Returns the status box
                 await sep_scripts.get_template('single_order', 'single-order.html', 'templates/backend/components/').then(function (content) {
                     if (typeof order_obj === 'object') {
@@ -175,9 +194,74 @@ let sep_scripts = {
         })
     },
 
-    async display_tracking_box(data) {
+    /**
+     * Renders the tracking data box
+     * 
+     * @param {object} tracking_data The tracking data as an object e.g. ([barcode:1231564513, provider: swisspost])
+     * @returns string The Tracking info as html code
+     */
+    async display_tracking_box(tracking_data) {
         var template = await sep_scripts.get_template('tracking', 'tracking.html', 'templates/backend/components/');
-        return template;
+        var list_item_template = await sep_scripts.get_template('tracking_item', 'tracking-item.html', 'templates/backend/components/');
+        var output = '';
+        if (typeof tracking_data !== 'object') {
+            return __('Error while loading tracking data. Wrong format.', 'sep');
+        }
+        if (!empty(tracking_data)) {
+            jQuery.each(tracking_data, (index, item) => {
+                output = output + sep_scripts.add_templage_args(list_item_template, {
+                    barcode: item.barcode,
+                    provider: item.provider,
+                });
+            });
+        }
+
+        return sep_scripts.add_templage_args(template, {
+            tracking_btn_text: __('Order tracking', 'sep'),
+            current_tracking_codes: output,
+            tracking_providers: sep_scripts.get_tracking_providers(),
+        });
+    },
+
+    /**
+     * The tracking providers set by the user in the settings
+     * @returns The parcel delivery providers.
+     */
+    get_tracking_providers() {
+        return '<option value="swiss_post">Die Post</option>';//Temp
+    },
+
+    async add_tracking_code() {
+        var barcode = jQuery('#tracking-code-input').val();
+        var provider = jQuery('#tracking-providers').val();
+        var order_id = jQuery('#order-information').data('order-id');
+        if (empty(barcode)) {
+            sep_scripts.display_error(__('No barcode given', 'sep'), '#tracking-codes-errors');
+            return false;
+        }
+        var list_item_template = await sep_scripts.get_template('tracking_item', 'tracking-item.html', 'templates/backend/components/');
+        let item = sep_scripts.add_templage_args(list_item_template, {
+            barcode: barcode,
+            provider: provider,
+        });
+        jQuery('#current-tracking-codes-container').append(item);
+
+        //Update the order via ajax
+        let send_data = new FormData();
+        send_data.append('action', 'sep_ajax_orders');
+        send_data.append('do', 'add_tracking_code');
+        send_data.append('order_id', order_id);
+        send_data.append('barcode', barcode);
+        send_data.append('service_provider', provider);
+        const ajax_response = await this.load_ajax(send_data);
+        const has_errors = this.get_ajax_error_answer(ajax_response);
+        if (!empty(has_errors)) {
+            sep_scripts.display_error(__('Updating the order failed: %s', 'sep').replace('%s', has_errors),
+                '#tracking-codes-errors'
+            );
+            return;
+        }
+        return;
     },
 
     async display_products_items_box(products) {
@@ -189,7 +273,7 @@ let sep_scripts = {
         jQuery.each(products, (index, item) => {
             output = output + sep_scripts.add_templage_args(template, {
                 line_id: item.id,
-                sku : item.sku,
+                sku: item.sku,
                 product_id: item.product_id,
                 name: item.name,
                 quantity: item.quantity,
@@ -267,8 +351,17 @@ let sep_scripts = {
      * @param {bool} only_first If only the first element should be returned
      * @returns void|array|string
      */
-    get_ajax_error_answer(data, only_first = true) {
+    get_ajax_system_error_answer(data, only_first = true) {
         return this.get_ajax_answer(data, 'system_error', only_first);
+    },
+
+    /**
+     * Adds an error message to given field
+     * @param {string} message The error message
+     * @param {string} field The field as css selector
+     */
+    display_error(message, field) {
+        jQuery(field).append(message);
     },
     /**
      * Returns the message from the ajax response
@@ -325,7 +418,7 @@ let sep_scripts = {
         current_quant = parseInt(current_quant);
         var new_quant = (action === 'increase') ? current_quant + 1 : current_quant - 1;
         //Only allow positive numbers
-        if(new_quant >= 0){
+        if (new_quant >= 0) {
             jQuery(`[data-line-id=${line_id}] .current-quantity`).text(new_quant.toString());
         }
         sep_scripts.picklist_check_quantity(line_id);
@@ -336,20 +429,31 @@ let sep_scripts = {
      * Checks if the quantities. If the amount matches, it will get the valid class, error otherwise. 
      * @param {*} line_id 
      */
-    picklist_check_quantity(line_id){
+    picklist_check_quantity(line_id) {
         let current_quant = parseInt(jQuery(`[data-line-id=${line_id}] .current-quantity`).text());
         let total_quant = parseInt(jQuery(`[data-line-id=${line_id}] .total-quantity`).text());
         //Reset tje status
         jQuery(`[data-line-id=${line_id}] .quantity`).removeClass('sep-valid', 'sep-error');
         //Amount matches
-        if(current_quant === total_quant){
+        if (current_quant === total_quant) {
             jQuery(`[data-line-id=${line_id}] .quantity`).addClass('valid');
         }
         //Amount is bigger than allowed 
-        if(current_quant > total_quant){
+        if (current_quant > total_quant) {
             jQuery(`[data-line-id=${line_id}] .quantity`).addClass('sep-error');
         }
         return;
+    },
+
+    /**
+     * Tries to get the order parameter from the url
+     * 
+     * @returns Empty string or the id of the order
+     */
+    get_order_from_url() {
+        const query = window.location.search;
+        const param = new URLSearchParams(query);
+        return param.get('order');
     }
 
 
