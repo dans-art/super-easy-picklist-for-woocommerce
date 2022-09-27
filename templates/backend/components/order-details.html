@@ -1,5 +1,11 @@
 <div class='sep-order-item' data-order-id="{{order_number}}">
-    <div class="order-number">{{order_number}}</div>
+    <div class="order-action">
+        <button data-order-id="{{order_number}}" class="double-icons">
+            <i class="fa-solid fa-arrow-down"></i>
+            <i class="fa-solid fa-box-open"></i>
+        </button>
+    </div>
+    <div class="order-number">#{{order_number}}</div>
     <div class="order-date">{{date}}</div>
     <div class="order-name">{{name}}</div>
     <div class="order-amount">{{amount}}</div>

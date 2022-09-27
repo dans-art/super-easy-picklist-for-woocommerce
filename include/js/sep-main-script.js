@@ -38,7 +38,7 @@ let sep_scripts = {
             sep_scripts.find_orders();
         });
         //On order selection
-        jQuery('#order-section-content').on('click', '.sep-order-item', (e) => {
+        jQuery('#order-section-content').on('click', '.sep-order-item button', (e) => {
             let order_id = jQuery(e.currentTarget).data('order-id');
             sep_scripts.load_single_order(order_id);
         });
@@ -54,7 +54,7 @@ let sep_scripts = {
         });
         //Button actions
         //Select another order
-        jQuery('#order-section-content').on('click', '#select_another_order', (e) => {
+        jQuery('#order-section-content').on('click', '#select-another-order', (e) => {
             jQuery('#order-section-content').html('');
             jQuery('#sep-order-search-input-container').show();
         });
@@ -63,7 +63,7 @@ let sep_scripts = {
             sep_scripts.add_tracking_code();
         });
         //Increase or decrease the quantity
-        jQuery('#order-section-content').on('click', '.modify_product_quantity', (e) => {
+        jQuery('#order-section-content').on('click', '.modify-product-quantity', (e) => {
             let line_id = jQuery(e.currentTarget).data('line-id');
             let action = jQuery(e.currentTarget).data('action');
             sep_scripts.picklist_modify_quantity(line_id, action);
@@ -135,13 +135,13 @@ let sep_scripts = {
             if (typeof found_orders === 'object') {
                 var output = '<h2>' + __('Found Orders', 'sep') + '</h2>';
                 jQuery.each(found_orders, (index, order) => {
-
+                    var date_obj = new Date(order.date_created.date);
                     output += sep_scripts.add_templage_args(content,
                         {
                             order_number: order.id,
                             name: order.billing.first_name + ' ' + order.billing.last_name,
                             amount: order.total + ' ' + order.currency,
-                            date: order.date_created.date,
+                            date: date_obj.toDateString()
                         }
                     );
                 });
@@ -159,6 +159,7 @@ let sep_scripts = {
                 var order_items = await sep_scripts.display_products_items_box(order_obj.line_items); //Format the products
                 var tracking_data = await sep_scripts.display_tracking_box(order_obj.tracking); //Format the tracking codes
                 var status = await sep_scripts.display_status_box(order_obj); //Returns the status box
+
                 await sep_scripts.get_template('single_order', 'single-order.html', 'templates/backend/components/').then(function (content) {
                     if (typeof order_obj === 'object') {
 
@@ -170,6 +171,7 @@ let sep_scripts = {
                                 picklist_content: order_items,
                                 tracking_content: tracking_data,
                                 status_content: status,
+                                total_items: Object.keys(order_obj.line_items).length,
                                 //Titles
                                 order_title: __('Order', 'sep'),
                                 edit_order_text: __('Edit order', 'sep'),
@@ -180,6 +182,8 @@ let sep_scripts = {
                                 tracking_title: __('Shipping tracking', 'sep'),
                                 status_title: __('Order status', 'sep'),
                                 picklist_input_placeholder: __('Scan a product to add it to the picklist', 'sep'),
+                                items_packed_text: __('Items packed: ','sep'),
+                                items_packed_of_text: __('out of','sep'),
                             }
                         );
                         //Fill the picklist
@@ -422,6 +426,7 @@ let sep_scripts = {
             jQuery(`[data-line-id=${line_id}] .current-quantity`).text(new_quant.toString());
         }
         sep_scripts.picklist_check_quantity(line_id);
+        sep_scripts.update_picked_count();
         return;
     },
 
@@ -432,17 +437,26 @@ let sep_scripts = {
     picklist_check_quantity(line_id) {
         let current_quant = parseInt(jQuery(`[data-line-id=${line_id}] .current-quantity`).text());
         let total_quant = parseInt(jQuery(`[data-line-id=${line_id}] .total-quantity`).text());
-        //Reset tje status
-        jQuery(`[data-line-id=${line_id}] .quantity`).removeClass('sep-valid', 'sep-error');
+        //Reset the status
+        jQuery(`[data-line-id=${line_id}] .quantity`).removeClass('sep-valid');
+        jQuery(`[data-line-id=${line_id}] .quantity`).removeClass('sep-error');
         //Amount matches
         if (current_quant === total_quant) {
-            jQuery(`[data-line-id=${line_id}] .quantity`).addClass('valid');
+            jQuery(`[data-line-id=${line_id}] .quantity`).addClass('sep-valid');
         }
         //Amount is bigger than allowed 
         if (current_quant > total_quant) {
             jQuery(`[data-line-id=${line_id}] .quantity`).addClass('sep-error');
         }
         return;
+    },
+
+    /**
+     * Updates the picked count by counting all the line items with the sep-valid class
+     */
+    update_picked_count(){
+        var packed = jQuery('.sep-order-product-item .quantity.sep-valid').length;
+        jQuery('#pick-info .items-packed').text(packed);
     },
 
     /**

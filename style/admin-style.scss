@@ -1,0 +1,155 @@
+/**
+ * Plugin Name: Super Easy Picklist for WooCommerce
+ * Style description: Basic style for backend style
+ * Author: Dan's Art
+ * Author URI: http://dev.dans-art.ch
+ */
+
+.menu-top.toplevel_page_super-easy-picklist img {
+    max-width: 36px;
+    padding: 0;
+}
+
+#order-section-content {
+
+    /** Find Order Page*/
+    .sep-order-item {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 0.5em;
+        align-items: center;
+        width: 100%;
+        max-width: 600px;
+
+        div {
+            flex-basis: 150px;
+            margin-left: 2em;
+        }
+
+        .order-action,
+        .order-number {
+            flex-basis: 50px;
+        }
+
+    }
+
+    /** Single Order Page*/
+    #order-information {
+        display: flex;
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+
+        div {
+            margin-right: 2em;
+        }
+
+        .order-id {
+            width: 100%;
+            flex-basis: 100%;
+        }
+
+    }
+
+    #picklist_code_input {
+        width: 100%;
+        height: 3em;
+    }
+
+    #picklist-container {
+        display: flex;
+        justify-content: space-between;
+
+        #picklist,
+        #tracking-code,
+        #order-status {
+            flex-basis: 33.333%;
+            padding: 0.5em
+        }
+
+        .sep-order-product-item {
+            display: flex;
+            width: 100%;
+            justify-content: flex-start;
+            align-items: center;
+            margin: 1em 0;
+
+            .quantity {
+                flex-basis: 10%;
+            }
+
+            .product-name {
+                flex-basis: 60%;
+            }
+
+            .product-actions {
+                flex-basis: 30%;
+                display: flex;
+                width: 100%;
+                justify-content: flex-end;
+
+                button {
+                    margin: 0 0.5em;
+                }
+
+                button:first-child {
+                    color: green;
+                }
+            }
+
+            .quantity.sep-valid {
+                color: green;
+                font-weight: bold;
+            }
+
+            .quantity.sep-error {
+                color: red;
+            }
+
+        }
+
+        //Tracking code
+        #sep-tracking-input-container {
+            display: flex;
+
+            select {
+                flex-basis: 20%;
+            }
+
+            input {
+                flex-basis: 70%;
+            }
+
+            button {
+                flex-basis: 3em;
+                width: 3em;
+                height: 3em;
+            }
+        }
+
+        .sep-tracking-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5em;
+
+            span {
+                display: block;
+            }
+        }
+    }
+
+    .double-icons {
+        display: flex;
+        flex-direction: column;
+    }
+
+    button.double-icons {
+        height: 3em;
+        width: 3em;
+        padding-top: 0.3em;
+    }
+
+    button {
+        cursor: pointer;
+    }
+}

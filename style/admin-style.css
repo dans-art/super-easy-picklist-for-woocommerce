@@ -4,7 +4,148 @@
  * Author: Dan's Art
  * Author URI: http://dev.dans-art.ch
  */
+.menu-top.toplevel_page_super-easy-picklist img {
+  max-width: 36px;
+  padding: 0;
+}
 
- /*
- Fixes the display of the checkbox
- */
+#order-section-content {
+  /** Find Order Page*/
+  /** Single Order Page*/
+}
+
+#order-section-content .sep-order-item {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.5em;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+#order-section-content .sep-order-item div {
+  flex-basis: 150px;
+  margin-left: 2em;
+}
+
+#order-section-content .sep-order-item .order-action,
+#order-section-content .sep-order-item .order-number {
+  flex-basis: 50px;
+}
+
+#order-section-content #order-information {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+#order-section-content #order-information div {
+  margin-right: 2em;
+}
+
+#order-section-content #order-information .order-id {
+  width: 100%;
+  flex-basis: 100%;
+}
+
+#order-section-content #picklist_code_input {
+  width: 100%;
+  height: 3em;
+}
+
+#order-section-content #picklist-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+#order-section-content #picklist-container #picklist,
+#order-section-content #picklist-container #tracking-code,
+#order-section-content #picklist-container #order-status {
+  flex-basis: 33.333%;
+  padding: 0.5em;
+}
+
+#order-section-content #picklist-container .sep-order-product-item {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 1em 0;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .quantity {
+  flex-basis: 10%;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .product-name {
+  flex-basis: 60%;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .product-actions {
+  flex-basis: 30%;
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .product-actions button {
+  margin: 0 0.5em;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .product-actions button:first-child {
+  color: green;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .quantity.sep-valid {
+  color: green;
+  font-weight: bold;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .quantity.sep-error {
+  color: red;
+}
+
+#order-section-content #picklist-container #sep-tracking-input-container {
+  display: flex;
+}
+
+#order-section-content #picklist-container #sep-tracking-input-container select {
+  flex-basis: 20%;
+}
+
+#order-section-content #picklist-container #sep-tracking-input-container input {
+  flex-basis: 70%;
+}
+
+#order-section-content #picklist-container #sep-tracking-input-container button {
+  flex-basis: 3em;
+  width: 3em;
+  height: 3em;
+}
+
+#order-section-content #picklist-container .sep-tracking-item {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.5em;
+}
+
+#order-section-content #picklist-container .sep-tracking-item span {
+  display: block;
+}
+
+#order-section-content .double-icons {
+  display: flex;
+  flex-direction: column;
+}
+
+#order-section-content button.double-icons {
+  height: 3em;
+  width: 3em;
+  padding-top: 0.3em;
+}
+
+#order-section-content button {
+  cursor: pointer;
+}
+/*# sourceMappingURL=admin-style.css.map */

@@ -3,7 +3,7 @@
     <div class="order-id">
         Order #{{order_id}}
         <button id="edit_order">{{edit_order_text}}</button>
-        <button id="select_another_order">{{select_another_order_text}}</button>
+        <button id="select-another-order">{{select_another_order_text}}</button>
     </div>
     <div class="billing-address">
         <h2>{{billing_address_text}}</h2>
@@ -16,10 +16,13 @@
     </div>
 </div>
 <div id="picklist-container">
-    <h2>{{picklist_title}}</h2>
-    <input type="text" id="picklist_code_input" placeholder="{{picklist_input_placeholder}}"/>
     <div id="picklist">
+        <h2>{{picklist_title}}</h2>
+        <input type="text" id="picklist_code_input" placeholder="{{picklist_input_placeholder}}"/>
         {{picklist_content}}
+        <div id="pick-info">
+            <span>{{items_packed_text}}</span> <span class="items-packed">0</span> <span>{{items_packed_of_text}}</span> <span>{{total_items}}</span>
+        </div>
     </div>
     <div id="tracking-code">
         <h2>{{tracking_title}}</h2>

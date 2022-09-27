@@ -18,6 +18,7 @@ $order = isset($_GET['order_id']) ? $_GET['order_id'] : false;
 if (!$order) : ?>
     <form id='sep_picklist_page' action="<?php echo $page; ?>" method="post" enctype="multipart/form-data">
         <div id='sep-order-search-input-container'>
+            <div class=""><?php echo __('Search by order number or customer name','sep'); ?></div>
             <input type="text" name="sep-order-search-input" id="sep-order-search-input" />
             <button id="sep-order-search"><?php echo __('Search Order', 'sep'); ?></button>
         </div>
