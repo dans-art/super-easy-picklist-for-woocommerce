@@ -111,22 +111,24 @@ let sep_scripts = {
      * @param {object} field The input field 
      */
     async find_orders(order_id) {
-        jQuery('#order-section-content').html(__('Loading orders...', 'sep'));
+        let loading_order_text = __('Loading orders...', 'sep');
         let send_data = new FormData();
         send_data.append('action', 'sep_ajax_orders');
-        if(empty(order_id)){
+        if (empty(order_id)) {
             let value = jQuery('#sep-order-search-input').val();
             send_data.append('do', 'get_orders');
             send_data.append('search', value);
         }
-        else{
+        else {
             send_data.append('do', 'get_single_order');
             send_data.append('order_id', order_id);
+            loading_order_text = __('Loading order %s', 'sep').replace('%s', order_id);
         }
+        jQuery('#order-section-content').html(loading_order_text);
         const ajax_response = await this.load_ajax(send_data);
         const found_orders = this.get_ajax_success_answer(ajax_response);
         if (empty(found_orders)) {
-            sep_scripts.display_error(sep_scripts.get_ajax_error_answer(ajax_response),'#order-section-errors');
+            sep_scripts.display_error(sep_scripts.get_ajax_error_answer(ajax_response), '#order-section-errors');
             return;
         }
         //Add the current order to the object properties
@@ -182,8 +184,8 @@ let sep_scripts = {
                                 tracking_title: __('Shipping tracking', 'sep'),
                                 status_title: __('Order status', 'sep'),
                                 picklist_input_placeholder: __('Scan a product to add it to the picklist', 'sep'),
-                                items_packed_text: __('Items packed: ','sep'),
-                                items_packed_of_text: __('out of','sep'),
+                                items_packed_text: __('Items packed: ', 'sep'),
+                                items_packed_of_text: __('out of', 'sep'),
                             }
                         );
                         //Fill the picklist
@@ -454,7 +456,7 @@ let sep_scripts = {
     /**
      * Updates the picked count by counting all the line items with the sep-valid class
      */
-    update_picked_count(){
+    update_picked_count() {
         var packed = jQuery('.sep-order-product-item .quantity.sep-valid').length;
         jQuery('#pick-info .items-packed').text(packed);
     },
