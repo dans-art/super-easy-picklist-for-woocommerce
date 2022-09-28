@@ -21,14 +21,14 @@ $current_tab = (isset($_GET['tab'])) ? $_GET['tab'] : null;
 
 <nav class="nav-tab-wrapper">
     <a href="?page=super-easy-picklist" class="nav-tab <?php if ($current_tab === null) {echo 'nav-tab-active';} ?>"><?php echo __('Picklist', 'sep'); ?></a>
-    <a href="?page=super-easy-picklist&tab=service_provider" class="nav-tab <?php if ($current_tab === 'service_provider') {echo 'nav-tab-active';} ?>"><?php echo __('Service Provider', 'sep'); ?></a>
+    <a href="?page=super-easy-picklist&tab=settings" class="nav-tab <?php if ($current_tab === 'settings') {echo 'nav-tab-active';} ?>"><?php echo __('Settings', 'sep'); ?></a>
 </nav>
 
 <div class="sep-options-tab tab-content">
     <?php
     switch ($current_tab) {
-        case 'service_provider':
-            echo DaTemplateHandler::load_template_to_var('backend-options-page-service-provider', 'backend/');
+        case 'settings':
+            echo DaTemplateHandler::load_template_to_var('backend-options-page-settings', 'backend/');
             break;
         default:
             echo DaTemplateHandler::load_template_to_var('backend-options-page-main', 'backend/');

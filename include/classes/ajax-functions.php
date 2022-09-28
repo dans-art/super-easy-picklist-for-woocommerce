@@ -55,6 +55,38 @@ class SepAjax extends DaAjaxHandler
         echo $this->get_ajax_return();
         die();
     }
+
+    /**
+     * The ajax settings functions
+     *
+     * @return void
+     */
+    public function sep_ajax_settings(){
+        $do = $this->get_ajax_do();
+        $settings_handler = new SepSettings;
+        switch ($do) {
+            case 'add_shippting_provider':
+                $sp_name = $this->get_ajax_data('name');
+                $sp_link = $this->get_ajax_data('link');
+                if(empty($sp_name) OR empty($sp_link)){
+                    $this->set_error( __('Error: No name or tracking link provided','sep'), 'add_tracking_code');
+                    break;
+                }
+                $add = $settings_handler->save_new_shipping_provider($sp_name, $sp_link);
+                if (!is_wp_error($add) AND $add !== 0) {
+                    $this->set_success(['name' => $sp_name, 'link' => $sp_link]);
+                } else {
+                    $this->set_error( __('Error while adding a new shipping provider: ','sep') . $add->get_error_message());
+                }
+                break;
+
+            default:
+                # code...
+                break;
+        }
+        echo $this->get_ajax_return();
+        die();
+    }
     /**
      * Response for all the functions which need to have a logged in user.
      *

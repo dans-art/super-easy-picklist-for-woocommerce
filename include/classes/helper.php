@@ -22,6 +22,7 @@ class SepHelper
     public function add_actions()
     {
         //Add the backend menu
+        register_activation_hook(SEP_PATH, [$this, 'sep_activate']);
         add_action('admin_menu', [$this, 'add_menu']);
         add_action('admin_head', [$this, 'enqueue_ajax_functions']);
         add_action('admin_enqueue_scripts', [$this, 'sep_enqueue_scripts']);
@@ -29,8 +30,23 @@ class SepHelper
         //Ajax actions
         add_action('wp_ajax_sep_ajax_orders', [new SepAjax, 'sep_ajax_orders']);
         add_action('wp_ajax_nopriv_sep_ajax_orders', [new SepAjax, 'sep_ajax_nopriv_all']);
+        add_action('wp_ajax_sep_ajax_settings', [new SepAjax, 'sep_ajax_settings']);
+        add_action('wp_ajax_nopriv_sep_ajax_orders', [new SepAjax, 'sep_ajax_nopriv_all']);
     }
 
+    /**
+     * Called by the register_activation_hook
+     * Registers post type 'sep_shipping_provider'
+     * @return void
+     */
+    public function sep_activate()
+    {
+        add_action('init', function(){
+            $sp_args = []; //Arguments for the shipping provider post type.
+            register_post_type('sep_ship_prov', $sp_args);
+        });
+
+    }
     /**
      * Loads the current plugin version.
      */
@@ -57,7 +73,7 @@ class SepHelper
     {
         //Search also in the wp-content/language folder
         load_textdomain('sep', $this->sep_get_home_path() . 'wp-content/languages/plugins/super-easy-picklist-for-woocommerce-' . determine_locale() . '.mo');
-        
+
         //Try to load the file from the plugin-dir
         load_textdomain('sep', $this->sep_get_home_path() . 'wp-content/plugins/super-easy-picklist-for-woocommerce/languages/sep-' . determine_locale() . '.mo');
     }
@@ -67,7 +83,8 @@ class SepHelper
      *
      * @return void
      */
-    public function sep_enqueue_scripts(){
+    public function sep_enqueue_scripts()
+    {
         $this->sep_enqueue_admin_style();
         $this->sep_enqueue_admin_scripts();
     }
@@ -134,7 +151,7 @@ class SepHelper
      */
     public function sep_enqueue_admin_style()
     {
-        wp_enqueue_style( 'sep-fa', 'https://use.fontawesome.com/releases/v6.2.0/css/all.css' );
+        wp_enqueue_style('sep-fa', 'https://use.fontawesome.com/releases/v6.2.0/css/all.css');
         wp_enqueue_style('sep-admin-style', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/style/admin-style.css', array('sep-fa'), $this->version);
     }
 
@@ -147,7 +164,7 @@ class SepHelper
     public function sep_enqueue_admin_scripts()
     {
         $min = ($this->is_dev_server()) ? '' : '.min';
-        wp_enqueue_script('sep-admin-script', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/include/js/sep-main-script'.$min.'.js', array('wp-i18n', 'jquery'), $this->version);
+        wp_enqueue_script('sep-admin-script', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/include/js/sep-main-script' . $min . '.js', array('wp-i18n', 'jquery'), $this->version);
         wp_set_script_translations('sep-admin-script', 'sep', SEP_PATH . "/languages");
     }
 

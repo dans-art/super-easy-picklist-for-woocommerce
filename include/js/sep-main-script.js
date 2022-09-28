@@ -69,6 +69,12 @@ let sep_scripts = {
             sep_scripts.picklist_modify_quantity(line_id, action);
         });
 
+        /** Settings */
+        jQuery('#sep-save-shipping-provider').on('click', (e) => {
+            e.preventDefault();
+            sep_scripts.add_shipping_provider();
+        });
+
     },
 
     /**
@@ -268,6 +274,37 @@ let sep_scripts = {
             return;
         }
         return;
+    },
+
+    /**
+     * Adds a new shipping provider 
+     * 
+     * @returns 
+     */
+    async add_shipping_provider() {
+        let send_data = new FormData();
+        send_data.append('action', 'sep_ajax_settings');
+
+        send_data.append('do', 'add_shippting_provider');
+        send_data.append('name', jQuery('#sep-add-shipping-provider-name').val());
+        send_data.append('link', jQuery('#sep-add-shipping-provider-link').val());
+
+
+        const ajax_response = await this.load_ajax(send_data);
+        const added = this.get_ajax_success_answer(ajax_response);
+        if (empty(added)) {
+            jQuery('#sep-add-sp-errors').append(this.get_ajax_error_answer(ajax_response));
+            return;
+        }
+        //Check for errors in the response
+        if (typeof added !== 'object') {
+            jQuery('#sep-add-sp-errors').append(__('Error: Invalid shipping provider data received','sep'));
+            return;
+        }
+        //Add the item to the list
+        jQuery('#sep-add-sp-errors').html(''); //Remove all errors
+        debugger;
+
     },
 
     async display_products_items_box(products) {
