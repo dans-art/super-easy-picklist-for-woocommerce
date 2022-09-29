@@ -22,6 +22,7 @@ class SepOrder
      */
     public function get_orders($search = '', $limit = 10)
     {
+        $setting_handler = new SepSettings;
         //Allow to add custom status for fetching the posts
         $status = apply_filters(
             'sep_order_status_to_get',
@@ -36,8 +37,9 @@ class SepOrder
         if (empty($orders)) {
             return false;
         }
+        $sp = $setting_handler->get_shipping_providers();
         $orders = $this->get_additional_order_data($orders);
-        return $orders;
+        return ['orders' => $orders, 'shipping_providers' => $sp];
     }
     /**
      * Loads a single order
@@ -46,13 +48,16 @@ class SepOrder
      */
     public function get_single_order($id = '')
     {
+        $setting_handler = new SepSettings;
+
         $order = wc_get_order($id); //WC_Order
         //Filter all the elements not needed.
         if (empty($order)) {
             return false;
         }
+        $sp = $setting_handler->get_shipping_providers();
         $order = $this->get_additional_order_data([$order]);
-        return $order;
+        return ['orders' => $order, 'shipping_providers' => $sp];
     }
 
     /**
@@ -93,23 +98,84 @@ class SepOrder
         $tracking_data = get_post_meta($order_id, 'sep_tracking_codes', true);
         return (empty($tracking_data)) ? [] : maybe_unserialize($tracking_data);
     }
+    /**
+     * Returns the tracking data as formatted links
+     * @todo: Rename the key link to barcode
+     *
+     * @param string|int $order_id - The Order ID
+     * @return string The formatted tracking code or error message
+     */
+    public function get_tracking_data_formatted($order_id)
+    {
+        $tracking_data = $this->get_tracking_data($order_id);
+        if (empty($tracking_data)) {
+            return __('This order has no tracking data so far.', 'sep');
+        }
+        $links = array_map(function ($item) {
+            $link = $this->get_tracking_link($item['id'], $item['link']);
+            return "<a href='$link' target='_blank'>" . $item['name'] . " - " . $item['link'] . "</a>";
+        }, $tracking_data);
+
+        return implode('<br/>', $links);
+    }
+
+    /**
+     * Converts the tracking link
+     *
+     * @param string|int $sp_id - Id of the service provider
+     * @param string|int $barcode - The barcode
+     * @return string The new link or an empty string
+     */
+    public function get_tracking_link($sp_id, $barcode)
+    {
+        $link = get_post_field('post_content', $sp_id);
+        if (empty($link)) {
+            return '';
+        }
+        return str_replace('{tracking}', $barcode, $link);
+    }
 
     /**
      * Appends the tracking information to the order
      *
      * @param string|int $order_id - The Order ID
-     * @param string $barcode - The barcode
-     * @param string $provider - The service provider
-     * @return string|bool Meta ID if created, true on update, false on error or same value
+     * @param string $link - The link with barcode placeholder
+     * @param string $sp_id - The service provider ID
+     * @return int|bool Meta ID if the key didn't exist, true on successful update, false on failure or if the 
+     * value passed to the function is the same as the one that is already in the database.
      */
-    public function add_tracking_data($order_id, $barcode, $provider)
+    public function add_tracking_data($order_id, $link, $sp_id)
     {
         $tracking_data =  $this->get_tracking_data($order_id);
+        $provider_name = get_post_field('post_title', $sp_id);
+        if (empty($provider_name)) {
+            return __('No service provider found', 'sep');
+        }
         $new_data = [
-            'barcode' => $barcode,
-            'provider' => $provider,
+            'link' => $link,
+            'name' => $provider_name,
+            'id' => $sp_id,
         ];
         array_push($tracking_data, $new_data);
+        $tracking_data = maybe_serialize($tracking_data);
+        return update_post_meta($order_id, 'sep_tracking_codes', $tracking_data);
+    }
+
+    /**
+     * Removes a tracking code from the given order
+     *
+     * @param string|int $order_id - The Order ID
+     * @param string|int $sp_id - The service provider ID
+     * @return string|bool error message on error, true on success
+     */
+    public function remove_tracking_data($order_id, $sp_id)
+    {
+        $tracking_data =  $this->get_tracking_data($order_id);
+        foreach ($tracking_data as $index => $item) {
+            if ($item['id'] == $sp_id) {
+                unset($tracking_data[$index]);
+            }
+        }
         $tracking_data = maybe_serialize($tracking_data);
         return update_post_meta($order_id, 'sep_tracking_codes', $tracking_data);
     }

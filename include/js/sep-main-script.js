@@ -7,6 +7,7 @@
 let sep_scripts = {
 
     loaded_orders: [],
+    shipping_providers: [],
     templates: [], //Storage for the templates.
 
     construct() {
@@ -53,6 +54,11 @@ let sep_scripts = {
             jQuery(e.currentTarget).val('');
         });
         //Button actions
+        //Redirect to edit order
+        jQuery('#order-section-content').on('click', '#edit_order', (e) => {
+            const order_id = jQuery('#order-information').data('order-id');
+            window.location = window.location.origin + window.location.pathname.replace('admin.php','post.php') + `?post=${order_id}&action=edit`;
+        });
         //Select another order
         jQuery('#order-section-content').on('click', '#select-another-order', (e) => {
             jQuery('#order-section-content').html('');
@@ -61,6 +67,12 @@ let sep_scripts = {
         //Add Tracking code
         jQuery('#order-section-content').on('click', '#add-tracking-code-button', (e) => {
             sep_scripts.add_tracking_code();
+        });
+        //Remove Tracking code
+        jQuery('#order-section-content').on('click', '.sep-remove-sp', (e) => {
+            const item_id = jQuery(e.currentTarget).parent().data('item-id');
+            const order_id = jQuery('#order-information').data('order-id');
+            sep_scripts.remove_tracking_code(item_id, order_id);
         });
         //Increase or decrease the quantity
         jQuery('#order-section-content').on('click', '.modify-product-quantity', (e) => {
@@ -73,6 +85,18 @@ let sep_scripts = {
         jQuery('#sep-save-shipping-provider').on('click', (e) => {
             e.preventDefault();
             sep_scripts.add_shipping_provider();
+        });
+        jQuery('#sep_settings_page').on('click', '.sep-remove-sp', (e) => {
+            e.preventDefault();
+            let provider_id = jQuery(e.currentTarget).parent().data('item-id');
+            sep_scripts.remove_shipping_provider(provider_id);
+        });
+
+        /** Meta Box */
+        jQuery('#sep_order_meta_box').on('click', '#open-picklist-button', (e) => {
+            e.preventDefault();
+            const order_id = sep_scripts.get_order_from_url('post');
+            window.location = window.location.origin + window.location.pathname.replace('post.php','admin.php') + `?page=super-easy-picklist&order=${order_id}`;
         });
 
     },
@@ -133,16 +157,17 @@ let sep_scripts = {
         jQuery('#order-section-content').html(loading_order_text);
         const ajax_response = await this.load_ajax(send_data);
         const found_orders = this.get_ajax_success_answer(ajax_response);
-        if (empty(found_orders)) {
+        if (empty(found_orders.orders)) {
             sep_scripts.display_error(sep_scripts.get_ajax_error_answer(ajax_response), '#order-section-errors');
             return;
         }
         //Add the current order to the object properties
-        this.loaded_orders = found_orders;
+        this.loaded_orders = found_orders.orders;
+        this.shipping_providers = found_orders.shipping_providers;
         return await sep_scripts.get_template('order_details', 'order-details.html', 'templates/backend/components/').then(function (content) {
-            if (typeof found_orders === 'object') {
+            if (typeof found_orders.orders === 'object') {
                 var output = '<h2>' + __('Found Orders', 'sep') + '</h2>';
-                jQuery.each(found_orders, (index, order) => {
+                jQuery.each(found_orders.orders, (index, order) => {
                     var date_obj = new Date(order.date_created.date);
                     output += sep_scripts.add_templage_args(content,
                         {
@@ -222,8 +247,10 @@ let sep_scripts = {
         if (!empty(tracking_data)) {
             jQuery.each(tracking_data, (index, item) => {
                 output = output + sep_scripts.add_templage_args(list_item_template, {
-                    barcode: item.barcode,
-                    provider: item.provider,
+                    id: item.id,
+                    name: item.name,
+                    link: item.link,
+                    remove_text: '<i class="fa-solid fa-xmark"></i>'
                 });
             });
         }
@@ -237,15 +264,30 @@ let sep_scripts = {
 
     /**
      * The tracking providers set by the user in the settings
+     * Make sure to load an order first with find_orders(), otherwise there will be no providers loaded
      * @returns The parcel delivery providers.
      */
     get_tracking_providers() {
-        return '<option value="swiss_post">Die Post</option>';//Temp
+        if (empty(sep_scripts.shipping_providers)) {
+            console.error('No shipping providers loaded');
+            return false;
+        }
+        var output = '';
+        jQuery.each(sep_scripts.shipping_providers, (index, item) => {
+            output = output + `<option value="${item.id}">${item.name}</option>`;
+        });
+        return output;
     },
 
+    /**
+     * Adds a tracking code to the current order
+     * @returns void
+     */
     async add_tracking_code() {
         var barcode = jQuery('#tracking-code-input').val();
-        var provider = jQuery('#tracking-providers').val();
+        var sp_id = jQuery('#tracking-providers').val();
+        var provider = this.get_shipping_provider_by_id(sp_id);
+        provider = (!empty(provider.name)) ? provider.name : provider;
         var order_id = jQuery('#order-information').data('order-id');
         if (empty(barcode)) {
             sep_scripts.display_error(__('No barcode given', 'sep'), '#tracking-codes-errors');
@@ -253,8 +295,9 @@ let sep_scripts = {
         }
         var list_item_template = await sep_scripts.get_template('tracking_item', 'tracking-item.html', 'templates/backend/components/');
         let item = sep_scripts.add_templage_args(list_item_template, {
-            barcode: barcode,
-            provider: provider,
+            link: barcode,
+            name: provider,
+            remove_text: '<i class="fa-solid fa-xmark"></i>',
         });
         jQuery('#current-tracking-codes-container').append(item);
 
@@ -264,7 +307,7 @@ let sep_scripts = {
         send_data.append('do', 'add_tracking_code');
         send_data.append('order_id', order_id);
         send_data.append('barcode', barcode);
-        send_data.append('service_provider', provider);
+        send_data.append('service_provider', sp_id);
         const ajax_response = await this.load_ajax(send_data);
         const has_errors = this.get_ajax_error_answer(ajax_response);
         if (!empty(has_errors)) {
@@ -277,36 +320,143 @@ let sep_scripts = {
     },
 
     /**
-     * Adds a new shipping provider 
+     * Removes the tracking code from the current order
      * 
-     * @returns 
+     * @returns void
+     */
+    async remove_tracking_code(sp_id, order_id) {
+        //Remove the line
+        jQuery(`#current-tracking-codes-container[data-item-id="${sp_id}"]`);
+
+        //Make ajax call to remove it from the order
+        let send_data = new FormData();
+        send_data.append('action', 'sep_ajax_orders');
+
+        send_data.append('do', 'remove_tracking_code');
+        send_data.append('order_id', order_id);
+        send_data.append('sp_id', sp_id);
+
+        const ajax_response = await this.load_ajax(send_data);
+        const tracking = this.get_ajax_success_answer(ajax_response);
+        if (empty(tracking)) {
+            jQuery('#tracking-codes-errors').append(this.get_ajax_error_answer(ajax_response));
+            return;
+        }
+    },
+
+
+    /**
+     * Adds a shipping provider to the database via ajax call
+     * 
+     * @returns void
      */
     async add_shipping_provider() {
         let send_data = new FormData();
         send_data.append('action', 'sep_ajax_settings');
 
-        send_data.append('do', 'add_shippting_provider');
+        send_data.append('do', 'add_shipping_provider');
         send_data.append('name', jQuery('#sep-add-shipping-provider-name').val());
         send_data.append('link', jQuery('#sep-add-shipping-provider-link').val());
 
 
         const ajax_response = await this.load_ajax(send_data);
-        const added = this.get_ajax_success_answer(ajax_response);
-        if (empty(added)) {
+        const providers = this.get_ajax_success_answer(ajax_response);
+        if (empty(providers)) {
             jQuery('#sep-add-sp-errors').append(this.get_ajax_error_answer(ajax_response));
             return;
         }
         //Check for errors in the response
-        if (typeof added !== 'object') {
-            jQuery('#sep-add-sp-errors').append(__('Error: Invalid shipping provider data received','sep'));
+        if (typeof providers !== 'object') {
+            jQuery('#sep-add-sp-errors').append(__('Error: Invalid shipping provider data received', 'sep'));
             return;
         }
         //Add the item to the list
         jQuery('#sep-add-sp-errors').html(''); //Remove all errors
-        debugger;
+
+        //Refresh the providers
+        const providers_html = await sep_scripts.list_all_shipping_providers(providers);
+        jQuery('#sep-shipping-providers').html(providers_html);
+        return;
 
     },
 
+    /**
+     * Removes a shipping provider from the database via ajax call
+     * 
+     * @param {string} provider_id The shipping provider ID
+     * @returns void
+     */
+    async remove_shipping_provider(provider_id) {
+        let send_data = new FormData();
+        send_data.append('action', 'sep_ajax_settings');
+
+        send_data.append('do', 'remove_shipping_provider');
+        send_data.append('id', provider_id);
+
+        //Remove the line
+        jQuery('.sep-tracking-item[data-item-id="' + provider_id + '"]').remove();
+
+        const ajax_response = await this.load_ajax(send_data);
+        const removed = this.get_ajax_success_answer(ajax_response);
+        if (empty(removed)) {
+            jQuery('#sep-add-sp-errors').append(this.get_ajax_error_answer(ajax_response));
+            return;
+        }
+        //Add the item to the list
+        jQuery('#sep-add-sp-errors').html(''); //Remove all errors
+        return;
+
+    },
+
+    /**
+     * Searches in the shipping providers and the provider if found
+     * 
+     * @param {int} id The id of the shipping provider
+     * @returns string|object String on error, object on success 
+     */
+    get_shipping_provider_by_id(id) {
+        const providers = this.shipping_providers;
+        id = parseInt(id);
+        if (empty(providers)) {
+            return __('Error; No providers loaded.', 'sep');
+        }
+        var output = false;
+        jQuery.each(providers, (index, item) => {
+            if (item.id === id) {
+                output = item;
+            }
+        });
+        return output;
+    },
+    /**
+     * Formats all the shipping providers
+     * Loads the template tracking-item.html
+     * 
+     * @param {object} providers The shipping provider object
+     * @returns {string} The providers formatted 
+     */
+    async list_all_shipping_providers(providers) {
+        var output = '';
+        if (typeof providers !== 'object') {
+            return __('Error while loading providers. Wrong format.', 'sep');
+        }
+        var template = await sep_scripts.get_template('tracking_item', 'tracking-item.html', 'templates/backend/components/');
+        jQuery.each(providers, (index, item) => {
+            output = output + sep_scripts.add_templage_args(template, {
+                id: item.id,
+                link: item.link,
+                name: item.name,
+            });
+        });
+        return output;
+    },
+
+    /**
+     * Loads the template list-products.html and formats the data
+     * 
+     * @param {object} products All the products as object
+     * @returns {string} Html string
+     */
     async display_products_items_box(products) {
         var output = '';
         if (typeof products !== 'object') {
@@ -344,7 +494,7 @@ let sep_scripts = {
         }
         var output = '';
         jQuery.each(meta, (index, item) => {
-            output = output + `${item.key} : ${item.value}`;
+            output = output + `${item.key} : ${item.value}` + '<br/>';
         })
         return output;
     },
@@ -353,7 +503,7 @@ let sep_scripts = {
      * 
      * @param {object} order The order object from the ajax request 
      * @param {string} type The type to get. billing or shipping are supported 
-     * @returns {string} The formated order address 
+     * @returns {string} The formatted order address 
      */
     get_order_address(order, type = 'billing') {
         if (typeof order !== 'object' || empty(order[type])) {
@@ -503,10 +653,10 @@ let sep_scripts = {
      * 
      * @returns Empty string or the id of the order
      */
-    get_order_from_url() {
+    get_order_from_url(param_name = 'order') {
         const query = window.location.search;
         const param = new URLSearchParams(query);
-        return param.get('order');
+        return param.get(param_name);
     }
 
 

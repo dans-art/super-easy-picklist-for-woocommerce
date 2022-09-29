@@ -148,4 +148,51 @@
 #order-section-content button {
   cursor: pointer;
 }
+
+/* Settings*/
+#sep-settings .sep-tracking-item {
+  display: flex;
+  width: 100%;
+  max-width: 800px;
+  justify-content: space-between;
+}
+
+#sep-settings .sep-tracking-item span:first-child {
+  flex-basis: 20%;
+}
+
+#sep-settings .sep-tracking-item span:nth-child(2) {
+  flex-basis: 70%;
+}
+
+#sep-settings #sep-add-shipping-provider-container {
+  display: flex;
+  gap: 1em;
+  align-items: end;
+  width: 100%;
+  max-width: 800px;
+}
+
+#sep-settings #sep-add-shipping-provider-container label,
+#sep-settings #sep-add-shipping-provider-container input {
+  display: block;
+  width: 100%;
+}
+
+#sep-settings #sep-add-shipping-provider-container input {
+  height: 2.5em;
+}
+
+#sep-settings #sep-add-shipping-provider-container fieldset:nth-child(1) {
+  flex-basis: 30%;
+}
+
+#sep-settings #sep-add-shipping-provider-container fieldset:nth-child(2) {
+  flex-basis: 50%;
+}
+
+#sep-settings #sep-add-shipping-provider-container button {
+  flex-basis: 20%;
+  height: 2.5em;
+}
 /*# sourceMappingURL=admin-style.css.map */

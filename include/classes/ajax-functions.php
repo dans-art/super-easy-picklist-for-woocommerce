@@ -20,13 +20,25 @@ class SepAjax extends DaAjaxHandler
         $do = $this->get_ajax_do();
         $order_handler = new SepOrder;
         switch ($do) {
+            case 'remove_tracking_code':
+                $order_id = $this->get_ajax_data('order_id');
+                $sp_id = $this->get_ajax_data('sp_id');
+                $remove_tracking = $order_handler->remove_tracking_data($order_id, $sp_id);
+                if ($remove_tracking !== true) {
+                    $this->set_error(__('Tracking code could not be removed to the order:', 'sep') . $remove_tracking);
+                }else{
+                    $this->set_success(__('Tracking code removed from order','sep'));
+                }
+                break;
             case 'add_tracking_code':
                 $order_id = $this->get_ajax_data('order_id');
                 $barcode = $this->get_ajax_data('barcode');
                 $provider = $this->get_ajax_data('service_provider');
                 $add_tracking = $order_handler->add_tracking_data($order_id, $barcode, $provider);
-                if (!$add_tracking) {
-                    $this->set_error(__('Tracking code could not be added to the order.', 'sep'));
+                if ($add_tracking === false) {
+                    $this->set_error(__('Tracking code could not be added to the order:', 'sep') . $add_tracking);
+                }else{
+                    $this->set_success(__('Tracking code added to order','sep'));
                 }
                 break;
             case 'get_orders':
@@ -61,22 +73,36 @@ class SepAjax extends DaAjaxHandler
      *
      * @return void
      */
-    public function sep_ajax_settings(){
+    public function sep_ajax_settings()
+    {
         $do = $this->get_ajax_do();
         $settings_handler = new SepSettings;
         switch ($do) {
-            case 'add_shippting_provider':
+            case 'remove_shipping_provider':
+                $sp_id = $this->get_ajax_data('id');
+                if (empty($sp_id)) {
+                    $this->set_error(__('Error: No ID provided', 'sep'), 'remove_tracking_code');
+                    break;
+                }
+                $remove = $settings_handler->remove_shipping_provider($sp_id);
+                if ($remove === false or $remove === null) {
+                    $this->set_error(__('Error while removing shipping provider', 'sep'));
+                } else {
+                    $this->set_success(__('Service Provider removed', 'sep'));
+                }
+                break;
+            case 'add_shipping_provider':
                 $sp_name = $this->get_ajax_data('name');
                 $sp_link = $this->get_ajax_data('link');
-                if(empty($sp_name) OR empty($sp_link)){
-                    $this->set_error( __('Error: No name or tracking link provided','sep'), 'add_tracking_code');
+                if (empty($sp_name) or empty($sp_link)) {
+                    $this->set_error(__('Error: No name or tracking link provided', 'sep'), 'add_tracking_code');
                     break;
                 }
                 $add = $settings_handler->save_new_shipping_provider($sp_name, $sp_link);
-                if (!is_wp_error($add) AND $add !== 0) {
-                    $this->set_success(['name' => $sp_name, 'link' => $sp_link]);
+                if (!is_wp_error($add) and $add !== 0) {
+                    $this->set_success($settings_handler->get_shipping_providers());
                 } else {
-                    $this->set_error( __('Error while adding a new shipping provider: ','sep') . $add->get_error_message());
+                    $this->set_error(__('Error while adding a new shipping provider: ', 'sep') . $add->get_error_message());
                 }
                 break;
 

@@ -3,7 +3,7 @@
 /**
  * Template Handler
  * Author: Dan's Art
- * Version: 0.1
+ * Version: 0.1.1
  */
 
 if (!defined('ABSPATH')) {
@@ -35,9 +35,14 @@ class DaTemplateHandler
     public static function get_template_path(string $template_name = '', string $subfolder = '', $plugin_base = '', $theme_base = '')
     {
 
-        if (substr($template_name, -4) !== '.php') {
+        //Check for valid extension
+        $template_name_arr = explode('.', $template_name);
+        $supported_extensions = ['php','html','js'];
+        if(array_search(end($template_name_arr),$supported_extensions) === false){
+            //Adds the php extension if no extension found.
             $template_name .= '.php';
         }
+
         $plugin_base = (empty($plugin_base)) ? DA_TEMPLATE_PLUGIN_PATH : $plugin_base;
         $theme_base = (empty($theme_base)) ? DA_TEMPLATE_THEME_PATH : $theme_base;
 
@@ -87,7 +92,7 @@ class DaTemplateHandler
      * @param string $subfolder - Subfolder if any
      * @param array $paths - An array with the paths to the plugin folder and theme folder.
      * @param mixed ...$template_args - Arguments of any type to pass to the template.
-     * @return void
+     * @return string The template content or error message if template not found.
      * 
      * Template arguments:
      * - components/button

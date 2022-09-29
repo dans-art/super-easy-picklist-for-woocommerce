@@ -20,7 +20,7 @@ if (!$order) : ?>
         <div id='sep-order-search-input-container'>
             <div class=""><?php echo __('Search by order number or customer name','sep'); ?></div>
             <input type="text" name="sep-order-search-input" id="sep-order-search-input" />
-            <button id="sep-order-search"><?php echo __('Search Order', 'sep'); ?></button>
+            <button id="sep-order-search" class="button"><?php echo __('Search Order', 'sep'); ?></button>
         </div>
     </form>
     <div id="order-section-content"></div>

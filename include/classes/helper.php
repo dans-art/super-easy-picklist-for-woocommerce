@@ -25,8 +25,12 @@ class SepHelper
         register_activation_hook(SEP_PATH, [$this, 'sep_activate']);
         add_action('admin_menu', [$this, 'add_menu']);
         add_action('admin_head', [$this, 'enqueue_ajax_functions']);
+
+        //Enqueues scripts
         add_action('admin_enqueue_scripts', [$this, 'sep_enqueue_scripts']);
 
+        //Add meta boxes
+        add_action('add_meta_boxes', [$this, 'sep_add_order_meta_box']);
         //Ajax actions
         add_action('wp_ajax_sep_ajax_orders', [new SepAjax, 'sep_ajax_orders']);
         add_action('wp_ajax_nopriv_sep_ajax_orders', [new SepAjax, 'sep_ajax_nopriv_all']);
@@ -80,7 +84,7 @@ class SepHelper
 
     /**
      * Enqueues all the scripts and styles
-     *
+     * @todo: Only enqueue if neccesary, only on settings page and order
      * @return void
      */
     public function sep_enqueue_scripts()
@@ -113,6 +117,22 @@ class SepHelper
 
         return str_replace('\\', '/', $home_path);
     }
+
+    public function sep_add_order_meta_box(){
+        add_meta_box(
+            'sep_order_meta_box',
+            __('Super Easy Picklist','sep'),
+            [$this, 'render_order_meta_box'],
+            'shop_order', 
+            'side'
+        );
+    }
+
+    public function render_order_meta_box(){
+        echo DaTemplateHandler::load_template_to_var('order-meta-box', 'meta-box/');
+        return;
+    }
+    
     /**
      * Registers the custom settings Field
      *
