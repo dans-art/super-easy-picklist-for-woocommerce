@@ -45,11 +45,10 @@ class SepHelper
      */
     public function sep_activate()
     {
-        add_action('init', function(){
+        add_action('init', function () {
             $sp_args = []; //Arguments for the shipping provider post type.
             register_post_type('sep_ship_prov', $sp_args);
         });
-
     }
     /**
      * Loads the current plugin version.
@@ -118,21 +117,34 @@ class SepHelper
         return str_replace('\\', '/', $home_path);
     }
 
-    public function sep_add_order_meta_box(){
+    public function sep_add_order_meta_box()
+    {
         add_meta_box(
             'sep_order_meta_box',
-            __('Super Easy Picklist','sep'),
+            __('Super Easy Picklist', 'sep'),
             [$this, 'render_order_meta_box'],
-            'shop_order', 
+            'shop_order',
             'side'
         );
     }
 
-    public function render_order_meta_box(){
+    public function render_order_meta_box()
+    {
         echo DaTemplateHandler::load_template_to_var('order-meta-box', 'meta-box/');
         return;
     }
-    
+
+    /**
+     * Prints the footer for the admin page / called by the admin_footer action
+     *
+     * @return void
+     */
+    public function admin_footer_filter($footer)
+    {
+        $footer .= '<span id="sep-footer">' . __("Super Easy Picklist made with ❤️ by Dan's Art", "sep") . '</span>';
+        return $footer;
+    }
+
     /**
      * Registers the custom settings Field
      *
