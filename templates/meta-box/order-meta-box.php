@@ -14,6 +14,7 @@ $order_handler = new SepOrder;
 ?>
 
 <button id="open-picklist-button" class="button"><?php echo __('Picklist', 'sep') ?></button>
+<h3><?php echo __('Tracking Data','sep'); ?></h3>
 <div>
     <?php echo $order_handler->get_tracking_data_formatted($post->ID); ?>
 </div>

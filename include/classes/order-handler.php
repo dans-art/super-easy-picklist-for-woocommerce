@@ -76,6 +76,7 @@ class SepOrder
             if (is_array($items)) {
                 foreach ($items as $index => $item) { //WC_Order_Item_Product 
                     $order_data['line_items'][$index] = $item->get_data();
+                    $order_data['line_items'][$index]['meta_data'] = $this->get_product_meta_name($order_data['line_items'][$index]);
                     $order_data['line_items'][$index]['sku'] = $item->get_product()->get_sku();
                 }
             }
@@ -85,6 +86,28 @@ class SepOrder
         }, $orders);
 
         return $orders;
+    }
+
+    /**
+     * Returns the nicename for the meta data. This works only with meta data, which are defined in "Attributes"
+     *
+     * @param array $product - Product array 
+     * @return array The formatted meta data
+     */
+    public function get_product_meta_name($product)
+    {
+        if (!isset($product['meta_data']) or !isset($product['product_id'])) {
+            return null;
+        }
+        $product_id = $product['product_id'];
+        $product_meta_attr = get_post_meta($product_id, '_product_attributes', true); //Gets the product attributes
+        //$meta is a WC_Meta_Data object
+        foreach ($product['meta_data'] as $index => $meta) {
+            $meta_arr = $meta->get_data();
+            $product['meta_data'][$index] = $meta_arr;
+            $product['meta_data'][$index]['name'] = (isset($product_meta_attr[$meta_arr['key']]['name'])) ? $product_meta_attr[$meta_arr['key']]['name'] : $meta_arr['key'];
+        }
+        return $product['meta_data'];
     }
 
     /**
@@ -100,7 +123,6 @@ class SepOrder
     }
     /**
      * Returns the tracking data as formatted links
-     * @todo: Rename the key link to barcode
      *
      * @param string|int $order_id - The Order ID
      * @return string The formatted tracking code or error message

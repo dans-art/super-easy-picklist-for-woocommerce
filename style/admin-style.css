@@ -78,8 +78,12 @@
   flex-basis: 10%;
 }
 
-#order-section-content #picklist-container .sep-order-product-item .product-name {
+#order-section-content #picklist-container .sep-order-product-item .product {
   flex-basis: 60%;
+}
+
+#order-section-content #picklist-container .sep-order-product-item .product-title {
+  font-weight: bold;
 }
 
 #order-section-content #picklist-container .sep-order-product-item .product-actions {

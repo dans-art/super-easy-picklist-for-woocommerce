@@ -494,7 +494,7 @@ let sep_scripts = {
         }
         var output = '';
         jQuery.each(meta, (index, item) => {
-            output = output + `${item.key} : ${item.value}` + '<br/>';
+            output = output + `${item.name} : ${item.value}` + '<br/>';
         })
         return output;
     },
