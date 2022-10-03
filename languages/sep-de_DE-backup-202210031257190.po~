@@ -3,9 +3,9 @@ msgstr ""
 "Project-Id-Version: Super Easy Picklist for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-09-22 11:40+0000\n"
-"PO-Revision-Date: 2022-09-22 11:40+0000\n"
+"PO-Revision-Date: 2022-09-22 11:46+0000\n"
 "Last-Translator: \n"
-"Language-Team: German\n"
+"Language-Team: Deutsch\n"
 "Language: de_DE\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "MIME-Version: 1.0\n"
@@ -18,6 +18,10 @@ msgstr ""
 #. Author of the plugin
 msgid "Dan's Art"
 msgstr ""
+
+#: include/js/sep-main-script.js:40
+msgid "Failed to get a proper response from the ajax request."
+msgstr "Fehler in der Ajax antwort"
 
 #. URI of the plugin
 #. Author URI of the plugin
@@ -52,7 +56,7 @@ msgstr ""
 
 #: include/classes/ajax-functions.php:15
 msgid "Works!"
-msgstr ""
+msgstr "Funktioniert"
 
 #: include/classes/ajax-functions.php:26
 msgid "You have to be logged in to use those functions"

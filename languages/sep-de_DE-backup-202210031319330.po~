@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Super Easy Picklist for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-09-22 11:40+0000\n"
-"PO-Revision-Date: 2022-10-03 13:57+0000\n"
+"PO-Revision-Date: 2022-10-03 13:03+0000\n"
 "Last-Translator: \n"
 "Language-Team: Deutsch\n"
 "Language: de_DE\n"
@@ -41,7 +41,7 @@ msgstr ""
 
 #. Author of the plugin
 msgid "Dan's Art"
-msgstr "Dan's Art"
+msgstr ""
 
 #: include/js/sep-main-script.js:210
 msgid "Edit order"

@@ -15,6 +15,8 @@ class SepBackendMain extends SepHelper
 
     public function __construct()
     {
+        //@todo: Check if WC is installed
+
         //Set paths for the template handler
         DaTemplateHandler::set_paths(SEP_PATH . 'templates', 'super-easy-picklist/templates');
 

@@ -5,7 +5,7 @@
  * Class description: Various helper methods.
  * Author: Dan's Art
  * Author URI: http://dev.dans-art.ch
- *
+ * //21e07f9d9a2ae6fc2bce52d893de4279
  */
 
 if (!defined('ABSPATH')) {
@@ -28,6 +28,9 @@ class SepHelper
 
         //Enqueues scripts
         add_action('admin_enqueue_scripts', [$this, 'sep_enqueue_scripts']);
+
+        //Load textdomain
+        add_action('init', [$this, 'sep_load_textdomain']);
 
         //Add meta boxes
         add_action('add_meta_boxes', [$this, 'sep_add_order_meta_box']);
@@ -68,17 +71,17 @@ class SepHelper
     /**
      * Loads the translation of the plugin.
      * First it checks for downloaded translations by Wordpress, else it will search for the the translation in the plugin dir.
-     * Located at: plugins/add-customer-for-woocommerce/languages/
+     * Located at: plugins/super-easy-picklist/languages/
      *
      * @return void
      */
     public function sep_load_textdomain()
     {
         //Search also in the wp-content/language folder
-        load_textdomain('sep', $this->sep_get_home_path() . 'wp-content/languages/plugins/super-easy-picklist-for-woocommerce-' . determine_locale() . '.mo');
+        load_textdomain('sep', WP_CONTENT_DIR . '/languages/plugins/super-easy-picklist-for-woocommerce-' . determine_locale() . '.mo');
 
         //Try to load the file from the plugin-dir
-        load_textdomain('sep', $this->sep_get_home_path() . 'wp-content/plugins/super-easy-picklist-for-woocommerce/languages/sep-' . determine_locale() . '.mo');
+        load_textdomain('sep', SEP_PATH . 'languages/sep-' . determine_locale() . '.mo');
     }
 
     /**
@@ -184,7 +187,7 @@ class SepHelper
     public function sep_enqueue_admin_style()
     {
         wp_enqueue_style('sep-fa', 'https://use.fontawesome.com/releases/v6.2.0/css/all.css');
-        wp_enqueue_style('sep-admin-style', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/style/admin-style.css', array('sep-fa'), $this->version);
+        wp_enqueue_style('sep-admin-style', SEP_PLUGIN_DIR_URL . '/style/admin-style.css', array('sep-fa'), $this->version);
     }
 
     /**
@@ -196,8 +199,8 @@ class SepHelper
     public function sep_enqueue_admin_scripts()
     {
         $min = ($this->is_dev_server()) ? '' : '.min';
-        wp_enqueue_script('sep-admin-script', get_option('siteurl') . '/wp-content/plugins/super-easy-picklist-for-woocommerce/include/js/sep-main-script' . $min . '.js', array('wp-i18n', 'jquery'), $this->version);
-        wp_set_script_translations('sep-admin-script', 'sep', SEP_PATH . "/languages");
+        wp_enqueue_script('sep-main-script', SEP_PLUGIN_DIR_URL . 'include/js/sep-main-script' . $min . '.js', array('jquery'), $this->version);
+        wp_set_script_translations('sep-main-script', 'sep', SEP_PATH . "languages");
     }
 
     /**

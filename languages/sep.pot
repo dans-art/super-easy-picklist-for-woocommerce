@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Super Easy Picklist for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-22 11:46+0000\n"
+"POT-Creation-Date: 2022-10-03 12:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -16,12 +16,88 @@ msgstr ""
 "X-Loco-Version: 2.6.2; wp-6.0.2\n"
 "X-Domain: sep"
 
+#: templates/backend/backend-options-page-settings.php:34
+msgid "({tracking} for the tracking number)"
+msgstr ""
+
+#: templates/backend/backend-options-page.php:28
+msgid "About and help"
+msgstr ""
+
+#: templates/backend/backend-options-page-settings.php:24
+msgid "Add new shipping provider"
+msgstr ""
+
+#: templates/backend/backend-options-page-settings.php:20
+msgid "Available Shipping Services"
+msgstr ""
+
+#: include/js/sep-main-script.js:212
+msgid "Billing address"
+msgstr ""
+
+#: templates/backend/backend-options-page-settings.php:41
+msgid "Customer information"
+msgstr ""
+
 #. Author of the plugin
 msgid "Dan's Art"
 msgstr ""
 
-#: include/js/sep-main-script.js:40
+#: include/js/sep-main-script.js:210
+msgid "Edit order"
+msgstr ""
+
+#: include/classes/ajax-functions.php:105
+msgid "Error while adding a new shipping provider: "
+msgstr ""
+
+#: include/js/sep-main-script.js:514
+msgid "Error while loading address. Wrong format or wrong type."
+msgstr ""
+
+#: include/js/sep-main-script.js:493
+msgid "Error while loading product meta. Wrong format."
+msgstr ""
+
+#: include/js/sep-main-script.js:463
+msgid "Error while loading products. Wrong format."
+msgstr ""
+
+#: include/js/sep-main-script.js:441
+msgid "Error while loading providers. Wrong format."
+msgstr ""
+
+#: include/js/sep-main-script.js:245
+msgid "Error while loading tracking data. Wrong format."
+msgstr ""
+
+#: include/classes/ajax-functions.php:89
+msgid "Error while removing shipping provider"
+msgstr ""
+
+#: include/js/sep-main-script.js:370
+msgid "Error: Invalid shipping provider data received"
+msgstr ""
+
+#: include/classes/ajax-functions.php:84
+msgid "Error: No ID provided"
+msgstr ""
+
+#: include/classes/ajax-functions.php:98
+msgid "Error: No name or tracking link provided"
+msgstr ""
+
+#: include/js/sep-main-script.js:421
+msgid "Error; No providers loaded."
+msgstr ""
+
+#: include/js/sep-main-script.js:595
 msgid "Failed to get a proper response from the ajax request."
+msgstr ""
+
+#: include/js/sep-main-script.js:169
+msgid "Found Orders"
 msgstr ""
 
 #. URI of the plugin
@@ -29,11 +105,72 @@ msgstr ""
 msgid "https://dev.dans-art.ch"
 msgstr ""
 
-#: include/classes/helper.php:177
+#: templates/backend/backend-options-page-about.php:17
+msgid ""
+"If you like to give me quality feedback about the plugin, please fill out "
+"the survey."
+msgstr ""
+
+#: include/js/sep-main-script.js:218
+msgid "Items packed: "
+msgstr ""
+
+#: include/js/sep-main-script.js:155
+#, javascript-format
+msgid "Loading order %s"
+msgstr ""
+
+#: include/js/sep-main-script.js:144
+msgid "Loading orders..."
+msgstr ""
+
+#: include/classes/helper.php:238
 msgid "Log Type not found!"
 msgstr ""
 
+#: templates/backend/backend-options-page-settings.php:27
+msgid "Name"
+msgstr ""
+
+#: include/js/sep-main-script.js:293
+msgid "No barcode given"
+msgstr ""
+
+#: include/classes/ajax-functions.php:59
+#, php-format
+msgid "No order with the ID %s found"
+msgstr ""
+
+#: include/classes/ajax-functions.php:50
+msgid "No orders found"
+msgstr ""
+
+#: include/classes/order-handler.php:182
+msgid "No service provider found"
+msgstr ""
+
+#: include/classes/settings-handler.php:44
+msgid "No shipping providers found."
+msgstr ""
+
+#: include/js/sep-main-script.js:209
+msgid "Order"
+msgstr ""
+
+#: include/js/sep-main-script.js:216
+msgid "Order status"
+msgstr ""
+
+#: include/js/sep-main-script.js:259
+msgid "Order tracking"
+msgstr ""
+
+#: include/js/sep-main-script.js:219
+msgid "out of"
+msgstr ""
+
 #: templates/backend/backend-options-page.php:26
+#: templates/meta-box/order-meta-box.php:16 include/js/sep-main-script.js:214
 msgid "Picklist"
 msgstr ""
 
@@ -42,12 +179,56 @@ msgid ""
 "Reduce errors while packing and send customers the package tracking codes"
 msgstr ""
 
-#: templates/backend/backend-options-page.php:27
-msgid "Service Provider"
+#: include/classes/settings-handler.php:54
+msgid "Remove"
 msgstr ""
 
-#: include/classes/helper.php:97 include/classes/helper.php:98
-#: templates/backend/backend-options-page.php:19
+#: templates/backend/backend-options-page-settings.php:38
+msgid "Save shipping provider"
+msgstr ""
+
+#: include/js/sep-main-script.js:217
+msgid "Scan a product to add it to the picklist"
+msgstr ""
+
+#: templates/backend/backend-options-page-main.php:21
+msgid "Search by order number or customer name"
+msgstr ""
+
+#: templates/backend/backend-options-page-main.php:23
+msgid "Search Order"
+msgstr ""
+
+#: include/js/sep-main-script.js:211
+msgid "Select another order"
+msgstr ""
+
+#: templates/backend/backend-options-page-settings.php:45
+msgid "Send e-mail with tracking code on status change to:"
+msgstr ""
+
+#: include/classes/ajax-functions.php:91
+msgid "Service Provider removed"
+msgstr ""
+
+#: templates/backend/backend-options-page.php:27
+msgid "Settings"
+msgstr ""
+
+#: include/js/sep-main-script.js:213
+msgid "Shipping address"
+msgstr ""
+
+#: templates/backend/backend-options-page-settings.php:19
+msgid "Shipping providers"
+msgstr ""
+
+#: include/js/sep-main-script.js:215
+msgid "Shipping tracking"
+msgstr ""
+
+#: include/classes/helper.php:124 include/classes/helper.php:157
+#: include/classes/helper.php:158 templates/backend/backend-options-page.php:19
 msgid "Super Easy Picklist"
 msgstr ""
 
@@ -55,10 +236,57 @@ msgstr ""
 msgid "Super Easy Picklist for WooCommerce"
 msgstr ""
 
-#: include/classes/ajax-functions.php:15
-msgid "Works!"
+#: include/classes/helper.php:144
+msgid "Super Easy Picklist made with ❤️ by Dan's Art"
 msgstr ""
 
-#: include/classes/ajax-functions.php:26
+#: templates/backend/backend-options-page-about.php:26
+msgid "Survey about Super Easy Picklist"
+msgstr ""
+
+#: templates/backend/backend-options-page-about.php:18
+msgid "Thanks a lot!"
+msgstr ""
+
+#: templates/backend/backend-options-page-about.php:16
+msgid ""
+"Thanks for using the Plugin. If you have any issues, you can open a ticket "
+"on the official Wordpress Plugin page or on Github."
+msgstr ""
+
+#: include/classes/order-handler.php:142
+msgid "This order has no tracking data so far."
+msgstr ""
+
+#: include/classes/ajax-functions.php:41
+msgid "Tracking code added to order"
+msgstr ""
+
+#: include/classes/ajax-functions.php:39
+msgid "Tracking code could not be added to the order:"
+msgstr ""
+
+#: include/classes/ajax-functions.php:28
+msgid "Tracking code could not be removed to the order:"
+msgstr ""
+
+#: include/classes/ajax-functions.php:30
+msgid "Tracking code removed from order"
+msgstr ""
+
+#: templates/meta-box/order-meta-box.php:17
+msgid "Tracking Data"
+msgstr ""
+
+#: templates/backend/backend-options-page-settings.php:32
+msgid "Tracking link with Placeholder"
+msgstr ""
+
+#: include/js/sep-main-script.js:314
+#, javascript-format
+msgid "Updating the order failed: %s"
+msgstr ""
+
+#: include/classes/ajax-functions.php:123
 msgid "You have to be logged in to use those functions"
 msgstr ""

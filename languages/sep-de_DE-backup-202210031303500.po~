@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Super Easy Picklist for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-09-22 11:40+0000\n"
-"PO-Revision-Date: 2022-10-03 13:57+0000\n"
+"PO-Revision-Date: 2022-10-03 12:57+0000\n"
 "Last-Translator: \n"
 "Language-Team: Deutsch\n"
 "Language: de_DE\n"
@@ -17,23 +17,23 @@ msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:34
 msgid "({tracking} for the tracking number)"
-msgstr "({tracking} für die Tracking-Nummer)"
+msgstr ""
 
 #: templates/backend/backend-options-page.php:28
 msgid "About and help"
-msgstr "Hilfe"
+msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:24
 msgid "Add new shipping provider"
-msgstr "Neuen Lieferdienst hinzufügen"
+msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:20
 msgid "Available Shipping Services"
-msgstr "Verfügbare Lieferdienste"
+msgstr ""
 
 #: include/js/sep-main-script.js:212
 msgid "Billing address"
-msgstr "Rechnungsadresse"
+msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:41
 msgid "Customer information"
@@ -41,11 +41,11 @@ msgstr ""
 
 #. Author of the plugin
 msgid "Dan's Art"
-msgstr "Dan's Art"
+msgstr ""
 
 #: include/js/sep-main-script.js:210
 msgid "Edit order"
-msgstr "Bestellung bearbeiten"
+msgstr ""
 
 #: include/classes/ajax-functions.php:105
 msgid "Error while adding a new shipping provider: "
@@ -97,7 +97,7 @@ msgstr "Fehler in der Ajax antwort"
 
 #: include/js/sep-main-script.js:169
 msgid "Found Orders"
-msgstr "Gefundene Bestellungen"
+msgstr ""
 
 #. URI of the plugin
 #. Author URI of the plugin
@@ -112,16 +112,16 @@ msgstr ""
 
 #: include/js/sep-main-script.js:218
 msgid "Items packed: "
-msgstr "Artikel eingepackt:"
+msgstr ""
 
 #: include/js/sep-main-script.js:155
 #, javascript-format
 msgid "Loading order %s"
-msgstr "Lade Bestellung %s"
+msgstr ""
 
 #: include/js/sep-main-script.js:144
 msgid "Loading orders..."
-msgstr "Lade Bestellungen..."
+msgstr ""
 
 #: include/classes/helper.php:238
 msgid "Log Type not found!"
@@ -133,7 +133,7 @@ msgstr ""
 
 #: include/js/sep-main-script.js:293
 msgid "No barcode given"
-msgstr "Kein Barcode angegeben"
+msgstr ""
 
 #: include/classes/ajax-functions.php:59
 #, php-format
@@ -146,32 +146,32 @@ msgstr ""
 
 #: include/classes/order-handler.php:182
 msgid "No service provider found"
-msgstr "Kein Lieferdienst gefunden"
+msgstr ""
 
 #: include/classes/settings-handler.php:44
 msgid "No shipping providers found."
-msgstr "Keine Lieferdienste gefunden"
+msgstr ""
 
 #: include/js/sep-main-script.js:209
 msgid "Order"
-msgstr "Bestellung"
+msgstr ""
 
 #: include/js/sep-main-script.js:216
 msgid "Order status"
-msgstr "Bestellstatus"
+msgstr ""
 
 #: include/js/sep-main-script.js:259
 msgid "Order tracking"
-msgstr "Sendungsverfolgung"
+msgstr ""
 
 #: include/js/sep-main-script.js:219
 msgid "out of"
-msgstr "von"
+msgstr ""
 
 #: templates/backend/backend-options-page.php:26
 #: templates/meta-box/order-meta-box.php:16 include/js/sep-main-script.js:214
 msgid "Picklist"
-msgstr "Packliste"
+msgstr ""
 
 #. Description of the plugin
 msgid ""
@@ -180,27 +180,27 @@ msgstr ""
 
 #: include/classes/settings-handler.php:54
 msgid "Remove"
-msgstr "Entfernen"
+msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:38
 msgid "Save shipping provider"
-msgstr "Speichere Lieferdienst"
+msgstr ""
 
 #: include/js/sep-main-script.js:217
 msgid "Scan a product to add it to the picklist"
-msgstr "Scanne ein Produkt um es einzupacken"
+msgstr ""
 
 #: templates/backend/backend-options-page-main.php:21
 msgid "Search by order number or customer name"
-msgstr "Suche nach Bestellnummer oder Namen des Kunden"
+msgstr ""
 
 #: templates/backend/backend-options-page-main.php:23
 msgid "Search Order"
-msgstr "Suche Bestellung"
+msgstr ""
 
 #: include/js/sep-main-script.js:211
 msgid "Select another order"
-msgstr "Wähle eine andere Bestellung"
+msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:45
 msgid "Send e-mail with tracking code on status change to:"
@@ -212,24 +212,24 @@ msgstr ""
 
 #: templates/backend/backend-options-page.php:27
 msgid "Settings"
-msgstr "Einstellungen"
+msgstr ""
 
 #: include/js/sep-main-script.js:213
 msgid "Shipping address"
-msgstr "Lieferadresse"
+msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:19
 msgid "Shipping providers"
-msgstr "Lieferdienste"
+msgstr ""
 
 #: include/js/sep-main-script.js:215
 msgid "Shipping tracking"
-msgstr "Sendungsverfolgung"
+msgstr ""
 
 #: include/classes/helper.php:124 include/classes/helper.php:157
 #: include/classes/helper.php:158 templates/backend/backend-options-page.php:19
 msgid "Super Easy Picklist"
-msgstr "Super einfach Packliste"
+msgstr ""
 
 #. Name of the plugin
 msgid "Super Easy Picklist for WooCommerce"
@@ -255,7 +255,7 @@ msgstr ""
 
 #: include/classes/order-handler.php:142
 msgid "This order has no tracking data so far."
-msgstr "Diese Bestellung hat bisher keine Sendungen."
+msgstr ""
 
 #: include/classes/ajax-functions.php:41
 msgid "Tracking code added to order"
@@ -275,11 +275,11 @@ msgstr ""
 
 #: templates/meta-box/order-meta-box.php:17
 msgid "Tracking Data"
-msgstr "Sendungsdaten"
+msgstr ""
 
 #: templates/backend/backend-options-page-settings.php:32
 msgid "Tracking link with Placeholder"
-msgstr "Link für die Sendungsverfolgung mit Platzhalter."
+msgstr ""
 
 #: include/js/sep-main-script.js:314
 #, javascript-format
