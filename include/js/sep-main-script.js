@@ -494,6 +494,10 @@ let sep_scripts = {
         }
         var output = '';
         jQuery.each(meta, (index, item) => {
+            if(empty(item.name)){
+                console.log('No Meta name found for:', item);
+                return;
+            }
             output = output + `${item.name} : ${item.value}` + '<br/>';
         })
         return output;

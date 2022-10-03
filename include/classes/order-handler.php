@@ -101,11 +101,19 @@ class SepOrder
         }
         $product_id = $product['product_id'];
         $product_meta_attr = get_post_meta($product_id, '_product_attributes', true); //Gets the product attributes
+
         //$meta is a WC_Meta_Data object
         foreach ($product['meta_data'] as $index => $meta) {
-            $meta_arr = $meta->get_data();
+            $meta_arr = $meta->get_data(); //Get the data from WC_Meta_Data as an array
+            //Attribute slug to nicename
+            $meta_slug = (isset($product_meta_attr[$meta_arr['key']]['name'])) ? $product_meta_attr[$meta_arr['key']]['name'] : '';
             $product['meta_data'][$index] = $meta_arr;
-            $product['meta_data'][$index]['name'] = (isset($product_meta_attr[$meta_arr['key']]['name'])) ? $product_meta_attr[$meta_arr['key']]['name'] : $meta_arr['key'];
+            $product['meta_data'][$index]['name'] = wc_attribute_label($meta_slug);
+
+            //Check for attributes with non string values
+            if(!is_string($product['meta_data'][$index]['value'])){
+                $product['meta_data'][$index]['value'] = serialize($product['meta_data'][$index]['value']);
+            }
         }
         return $product['meta_data'];
     }
