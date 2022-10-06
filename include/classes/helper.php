@@ -159,7 +159,7 @@ class SepHelper
         add_menu_page(
             __('Super Easy Picklist', 'sep'),
             __('Super Easy Picklist', 'sep'),
-            'manage_options',
+            'edit_posts',
             'super-easy-picklist',
             [$this, 'render_backend_option_page'],
             $icon_url,
