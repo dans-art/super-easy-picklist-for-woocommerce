@@ -111,7 +111,7 @@ class SepOrder
             $product['meta_data'][$index]['name'] = wc_attribute_label($meta_slug);
 
             //Check for attributes with non string values
-            if(!is_string($product['meta_data'][$index]['value'])){
+            if (!is_string($product['meta_data'][$index]['value'])) {
                 $product['meta_data'][$index]['value'] = serialize($product['meta_data'][$index]['value']);
             }
         }
@@ -137,16 +137,33 @@ class SepOrder
      */
     public function get_tracking_data_formatted($order_id)
     {
+        $order = wc_get_order($order_id);
         $tracking_data = $this->get_tracking_data($order_id);
+        $order_items = $order->get_items();
+        $out = '';
         if (empty($tracking_data)) {
             return __('This order has no tracking data so far.', 'sep');
         }
-        $links = array_map(function ($item) {
-            $link = $this->get_tracking_link($item['id'], $item['link']);
-            return "<a href='$link' target='_blank'>" . $item['name'] . " - " . $item['link'] . "</a>";
-        }, $tracking_data);
 
-        return implode('<br/>', $links);
+        foreach ($tracking_data as $index => $item) {
+            $link = (empty($item['sp_code'])) ? '' : $this->get_tracking_link($item['sp_id'], $item['sp_code']);
+            $name = (empty($item['sp_name'])) ?
+                __('No tracking code', 'sep') :
+                "<a href='$link' target='_blank'>" . $item['sp_name'] . " - " . $item['sp_code'] . "</a>";
+            $out .= $name . '<br/>';
+            //Loop the packed items
+            if (is_object($item['items_packed'])) {
+                foreach ($item['items_packed'] as $index => $packed_item) {
+                    if (is_object($order_items[$packed_item->id])) {
+                        $name = $order_items[$packed_item->id]->get_name();
+                        $total = $order_items[$packed_item->id]->get_quantity();
+                        $out .= $packed_item->quant . '/' . $total  . ' - ' . $name . '<br/>';
+                    }
+                }
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -203,7 +220,8 @@ class SepOrder
      * @return int|bool Meta ID if the key didn't exist, true on successful update, false on failure or if the 
      * value passed to the function is the same as the one that is already in the database.
      */
-    public function add_packed_order($order_id, $sp_id, $sp_code, $items){
+    public function add_packed_order($order_id, $sp_id, $sp_code, $items)
+    {
         $tracking_data =  $this->get_tracking_data($order_id);
         $provider_name = get_post_field('post_title', $sp_id);
         $items = stripcslashes($items);
