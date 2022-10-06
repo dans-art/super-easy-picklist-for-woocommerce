@@ -173,6 +173,8 @@ class SepOrder
      * @param string $sp_id - The service provider ID
      * @return int|bool Meta ID if the key didn't exist, true on successful update, false on failure or if the 
      * value passed to the function is the same as the one that is already in the database.
+     * @deprecated Remove 
+     * @todo: Remove, unused
      */
     public function add_tracking_data($order_id, $link, $sp_id)
     {
@@ -188,6 +190,32 @@ class SepOrder
         ];
         array_push($tracking_data, $new_data);
         $tracking_data = maybe_serialize($tracking_data);
+        return update_post_meta($order_id, 'sep_tracking_codes', $tracking_data);
+    }
+
+    /**
+     * Adds the information about packed items to an order
+     *
+     * @param int $order_id - The ID of the order
+     * @param int $sp_id - The ID of the shipping provider
+     * @param string $sp_code - The barcode of the sp
+     * @param string $items - The items packed with this order (JSON String)
+     * @return int|bool Meta ID if the key didn't exist, true on successful update, false on failure or if the 
+     * value passed to the function is the same as the one that is already in the database.
+     */
+    public function add_packed_order($order_id, $sp_id, $sp_code, $items){
+        $tracking_data =  $this->get_tracking_data($order_id);
+        $provider_name = get_post_field('post_title', $sp_id);
+        $items = stripcslashes($items);
+        $new_data = [
+            'sp_id' => $sp_id,
+            'sp_name' => $provider_name,
+            'sp_code' => $sp_code,
+            'items_packed' => json_decode($items)
+        ];
+        array_push($tracking_data, $new_data);
+        $tracking_data = maybe_serialize($tracking_data);
+
         return update_post_meta($order_id, 'sep_tracking_codes', $tracking_data);
     }
 

@@ -57,29 +57,21 @@ let sep_scripts = {
         //Redirect to edit order
         jQuery('#order-section-content').on('click', '#edit_order', (e) => {
             const order_id = jQuery('#order-information').data('order-id');
-            window.location = window.location.origin + window.location.pathname.replace('admin.php','post.php') + `?post=${order_id}&action=edit`;
+            window.location = window.location.origin + window.location.pathname.replace('admin.php', 'post.php') + `?post=${order_id}&action=edit`;
         });
         //Select another order
         jQuery('#order-section-content').on('click', '#select-another-order', (e) => {
             jQuery('#order-section-content').html('');
             jQuery('#sep-order-search-input-container').show();
         });
-        //Add Tracking code
-        jQuery('#order-section-content').on('click', '#add-tracking-code-button', (e) => {
-            sep_scripts.add_tracking_code();
-        });
+
         //Remove Tracking code
         jQuery('#order-section-content').on('click', '.sep-remove-sp', (e) => {
             const item_id = jQuery(e.currentTarget).parent().data('item-id');
             const order_id = jQuery('#order-information').data('order-id');
             sep_scripts.remove_tracking_code(item_id, order_id);
         });
-        //Increase or decrease the quantity
-        jQuery('#order-section-content').on('click', '.modify-product-quantity', (e) => {
-            let line_id = jQuery(e.currentTarget).data('line-id');
-            let action = jQuery(e.currentTarget).data('action');
-            sep_scripts.picklist_modify_quantity(line_id, action);
-        });
+
 
         /** Settings */
         jQuery('#sep-save-shipping-provider').on('click', (e) => {
@@ -96,7 +88,31 @@ let sep_scripts = {
         jQuery('#sep_order_meta_box').on('click', '#open-picklist-button', (e) => {
             e.preventDefault();
             const order_id = sep_scripts.get_order_from_url('post');
-            window.location = window.location.origin + window.location.pathname.replace('post.php','admin.php') + `?page=super-easy-picklist&order=${order_id}`;
+            window.location = window.location.origin + window.location.pathname.replace('post.php', 'admin.php') + `?page=super-easy-picklist&order=${order_id}`;
+        });
+
+    },
+
+    set_single_event_listeners() {
+        //Increase or decrease the quantity
+        jQuery('.modify-product-quantity').on('click', (e) => {
+            let line_id = jQuery(e.currentTarget).data('line-id');
+            let action = jQuery(e.currentTarget).data('action');
+            sep_scripts.picklist_modify_quantity(line_id, action);
+        });
+        //Packs all form the current order
+        jQuery('#pack-all').on('click', (e) => {
+            sep_scripts.picklist_pack_all();
+        });
+
+        //Change of the shipping provider selector
+        jQuery('#tracking-providers').on('change', (e) => {
+            this.maybe_display_tracking_input();
+        });
+
+        //Change of the shipping provider selector
+        jQuery('#finish-package').on('click', (e) => {
+            this.pack_order();
         });
 
     },
@@ -181,16 +197,15 @@ let sep_scripts = {
             }
             return jQuery('#order-section-content').html(output);
         });
-        return;
-
     },
 
     async load_single_order(order_id) {
         //Find the order in the loaded orders
         this.loaded_orders.forEach(async function (order_obj) {
             if (order_obj.id === order_id) {
-                var order_items = await sep_scripts.display_products_items_box(order_obj.line_items); //Format the products
-                var tracking_data = await sep_scripts.display_tracking_box(order_obj.tracking); //Format the tracking codes
+                var order_items = await sep_scripts.display_products_items_box(order_obj.line_items, order_obj); //Format the products
+                var tracking_input = await sep_scripts.get_tracking_input(order_obj.tracking); //Format the tracking codes
+                var packed_products = await sep_scripts.display_packed_products_box(order_obj.tracking); //Format the tracking codes
                 var status = await sep_scripts.display_status_box(order_obj); //Returns the status box
 
                 await sep_scripts.get_template('single_order', 'single-order.html', 'templates/backend/components/').then(function (content) {
@@ -202,9 +217,10 @@ let sep_scripts = {
                                 billing_address: sep_scripts.get_order_address(order_obj),
                                 shipping_address: sep_scripts.get_order_address(order_obj, 'shipping'),
                                 picklist_content: order_items,
-                                tracking_content: tracking_data,
+                                tracking_input: tracking_input,
                                 status_content: status,
                                 total_items: Object.keys(order_obj.line_items).length,
+                                packed_content: packed_products,
                                 //Titles
                                 order_title: __('Order', 'sep'),
                                 edit_order_text: __('Edit order', 'sep'),
@@ -215,8 +231,11 @@ let sep_scripts = {
                                 tracking_title: __('Shipping tracking', 'sep'),
                                 status_title: __('Order status', 'sep'),
                                 picklist_input_placeholder: __('Scan a product to add it to the picklist', 'sep'),
-                                items_packed_text: __('Items packed: ', 'sep'),
                                 items_packed_of_text: __('out of', 'sep'),
+                                items_packed_text: __('Items packed: ', 'sep'),
+                                pack_all_text: __('Pack all', 'sep'),
+                                finish_package_text: __('Finish package', 'sep'),
+                                packed_title: __('Packed items', 'sep'),
                             }
                         );
                         //Fill the picklist
@@ -226,6 +245,10 @@ let sep_scripts = {
                     jQuery('#sep-order-search-input-container').hide();
                     //Displays the content
                     jQuery('#order-section-content').html(output);
+                    //Set the event listeners
+                    sep_scripts.set_single_event_listeners();
+                    //Hide the tracking inputs
+                    sep_scripts.maybe_display_tracking_input();
                 });
             }
         })
@@ -237,27 +260,72 @@ let sep_scripts = {
      * @param {object} tracking_data The tracking data as an object e.g. ([barcode:1231564513, provider: swisspost])
      * @returns string The Tracking info as html code
      */
-    async display_tracking_box(tracking_data) {
-        var template = await sep_scripts.get_template('tracking', 'tracking.html', 'templates/backend/components/');
-        var list_item_template = await sep_scripts.get_template('tracking_item', 'tracking-item.html', 'templates/backend/components/');
+    async display_packed_products_box(tracking_data) {
+        const packed_container_template = await sep_scripts.get_template('packed_container', 'packed-container.html', 'templates/backend/components/');
+
         var output = '';
         if (typeof tracking_data !== 'object') {
             return __('Error while loading tracking data. Wrong format.', 'sep');
         }
         if (!empty(tracking_data)) {
-            jQuery.each(tracking_data, (index, item) => {
-                output = output + sep_scripts.add_templage_args(list_item_template, {
-                    id: item.id,
-                    name: item.name,
-                    link: item.link,
-                    remove_text: '<i class="fa-solid fa-xmark"></i>'
+            for (const item of tracking_data) {
+                //Get the products as html
+                const items_html = await sep_scripts.get_tracked_products(item.items_packed);
+                //For each package
+                output = output + sep_scripts.add_templage_args(packed_container_template, {
+                    items: items_html,
+                    tracking_code: item.sp_code,
+                    service_provider: empty(item.sp_name) ? __('No shipping provider defined','sep') : item.sp_name,
+                    tracking_link: sep_scripts.get_tracking_link(item.sp_id, item.sp_code),
                 });
-            });
+            }
         }
+        return output;
+    },
 
+    /**
+     * Links the items packed with the items form the order
+     * 
+     * @param {object} items_packed The items packed
+     * @returns {string} The products as html
+     */
+    async get_tracked_products(items_packed) {
+        const list_item_template = await sep_scripts.get_template('list_products', 'list-products.html', 'templates/backend/components/');
+
+        if (empty(items_packed)) {
+            return false;
+        }
+        var output = '';
+        const order_items = sep_scripts.loaded_orders[0].line_items;
+        jQuery.each(items_packed, (index, packed) => {
+            output = output + sep_scripts.add_templage_args(list_item_template, {
+                line_id: packed.id,
+                sku: order_items[packed.id].sku,
+                product_id: order_items[packed.id].product_id,
+                name: order_items[packed.id].name,
+                quantity: packed.quant,
+                total_quantity: order_items[packed.id].quantity,
+                product_meta: sep_scripts.get_product_meta(order_items[packed.id].meta_data),
+            });
+        });
+        return output;
+    },
+
+
+
+    /**
+     * Displays the tracking input fields
+     * 
+     * @param {object} tracking_data The Tracking data
+     * @returns {string} 
+     */
+    async get_tracking_input(tracking_data) {
+        var template = await sep_scripts.get_template('tracking_input', 'tracking-input.html', 'templates/backend/components/');
+        var output = '';
+        if (typeof tracking_data !== 'object') {
+            return __('Error while loading tracking data. Wrong format.', 'sep');
+        }
         return sep_scripts.add_templage_args(template, {
-            tracking_btn_text: __('Order tracking', 'sep'),
-            current_tracking_codes: output,
             tracking_providers: sep_scripts.get_tracking_providers(),
         });
     },
@@ -272,7 +340,7 @@ let sep_scripts = {
             console.error('No shipping providers loaded');
             return false;
         }
-        var output = '';
+        var output = '<option value="none">' + __('None', 'sep') + '</option>';
         jQuery.each(sep_scripts.shipping_providers, (index, item) => {
             output = output + `<option value="${item.id}">${item.name}</option>`;
         });
@@ -282,6 +350,7 @@ let sep_scripts = {
     /**
      * Adds a tracking code to the current order
      * @returns void
+     * @deprecated Old, remove
      */
     async add_tracking_code() {
         var barcode = jQuery('#tracking-code-input').val();
@@ -407,6 +476,17 @@ let sep_scripts = {
         return;
 
     },
+    /**
+     * Checks if the tracking provider is set to none. If so, the inputs are hidden
+     */
+    maybe_display_tracking_input() {
+        const provider = jQuery('#tracking-providers').val();
+        if (provider === 'none') {
+            jQuery('.tracking-input').hide();
+        } else {
+            jQuery('.tracking-input').show();
+        }
+    },
 
     /**
      * Searches in the shipping providers and the provider if found
@@ -428,6 +508,36 @@ let sep_scripts = {
         });
         return output;
     },
+
+    /**
+     * Converts the shipping provider code to an tracking url
+     * 
+     * @param {string} sp_id Shipping provider id
+     * @param {string} sp_code The shipping provider code
+     * @returns string|false false on error, string with the tracking url on success
+     */
+    get_tracking_link(sp_id, sp_code) {
+        if(empty(sp_code)){
+            return '';
+        }
+        if (empty(sep_scripts.shipping_providers)) {
+            console.error('No shipping providers loaded');
+            return false;
+        }
+        var tracking_link = '';
+        jQuery.each(sep_scripts.shipping_providers, (index, item) => {
+            if (parseInt(sp_id) === item.id) {
+                tracking_link = item.link;
+                return;
+            }
+        });
+        if (empty(tracking_link)) {
+            console.error('No tracking link found');
+            return false;
+        }
+        return tracking_link.replace('{tracking}', sp_code);
+    },
+
     /**
      * Formats all the shipping providers
      * Loads the template tracking-item.html
@@ -455,9 +565,10 @@ let sep_scripts = {
      * Loads the template list-products.html and formats the data
      * 
      * @param {object} products All the products as object
+     * @param {object} order_obj The complete order object
      * @returns {string} Html string
      */
-    async display_products_items_box(products) {
+    async display_products_items_box(products, order_obj) {
         var output = '';
         if (typeof products !== 'object') {
             return __('Error while loading products. Wrong format.', 'sep');
@@ -469,7 +580,8 @@ let sep_scripts = {
                 sku: item.sku,
                 product_id: item.product_id,
                 name: item.name,
-                quantity: item.quantity,
+                quantity: 0,
+                total_quantity: item.quantity,
                 product_meta: sep_scripts.get_product_meta(item.meta_data),
             });
         });
@@ -494,7 +606,7 @@ let sep_scripts = {
         }
         var output = '';
         jQuery.each(meta, (index, item) => {
-            if(empty(item.name)){
+            if (empty(item.name)) {
                 console.log('No Meta name found for:', item);
                 return;
             }
@@ -611,12 +723,12 @@ let sep_scripts = {
      * @param {string} action The action to take. Only increase or decrease are supported 
      */
     picklist_modify_quantity(line_id, action = 'increase') {
-        let current_quant = jQuery(`[data-line-id=${line_id}] .current-quantity`).text();
+        let current_quant = jQuery(`#picklist [data-line-id=${line_id}] .current-quantity`).text();
         current_quant = parseInt(current_quant);
         var new_quant = (action === 'increase') ? current_quant + 1 : current_quant - 1;
         //Only allow positive numbers
         if (new_quant >= 0) {
-            jQuery(`[data-line-id=${line_id}] .current-quantity`).text(new_quant.toString());
+            jQuery(`#picklist [data-line-id=${line_id}] .current-quantity`).text(new_quant.toString());
         }
         sep_scripts.picklist_check_quantity(line_id);
         sep_scripts.update_picked_count();
@@ -624,22 +736,35 @@ let sep_scripts = {
     },
 
     /**
+     * Changes the current item total to the total items count
+     */
+    picklist_pack_all() {
+        jQuery('.sep-order-product-item').each((index, item) => {
+            const total = jQuery(item).find('.total-quantity').text();
+            jQuery(item).find('.current-quantity').text(total);
+            this.picklist_check_quantity(jQuery(item).data('line-id')); //Adds the class of sep-vaild
+        });
+        this.update_picked_count();
+
+    },
+
+    /**
      * Checks if the quantities. If the amount matches, it will get the valid class, error otherwise. 
      * @param {*} line_id 
      */
     picklist_check_quantity(line_id) {
-        let current_quant = parseInt(jQuery(`[data-line-id=${line_id}] .current-quantity`).text());
-        let total_quant = parseInt(jQuery(`[data-line-id=${line_id}] .total-quantity`).text());
+        let current_quant = parseInt(jQuery(`#picklist [data-line-id=${line_id}] .current-quantity`).text());
+        let total_quant = parseInt(jQuery(`#picklist [data-line-id=${line_id}] .total-quantity`).text());
         //Reset the status
-        jQuery(`[data-line-id=${line_id}] .quantity`).removeClass('sep-valid');
-        jQuery(`[data-line-id=${line_id}] .quantity`).removeClass('sep-error');
+        jQuery(`#picklist [data-line-id=${line_id}] .quantity`).removeClass('sep-valid');
+        jQuery(`#picklist [data-line-id=${line_id}] .quantity`).removeClass('sep-error');
         //Amount matches
         if (current_quant === total_quant) {
-            jQuery(`[data-line-id=${line_id}] .quantity`).addClass('sep-valid');
+            jQuery(`#picklist [data-line-id=${line_id}] .quantity`).addClass('sep-valid');
         }
         //Amount is bigger than allowed 
         if (current_quant > total_quant) {
-            jQuery(`[data-line-id=${line_id}] .quantity`).addClass('sep-error');
+            jQuery(`#picklist [data-line-id=${line_id}] .quantity`).addClass('sep-error');
         }
         return;
     },
@@ -661,6 +786,81 @@ let sep_scripts = {
         const query = window.location.search;
         const param = new URLSearchParams(query);
         return param.get(param_name);
+    },
+
+    /**
+     * Adds the items packed to the order and assigns it to the barcode given.
+     * 
+     * @returns void
+     */
+    async pack_order() {
+        //Get all items
+        const order_id = jQuery('#order-information').data('order-id');
+        var items_send = {}; //The Items to send via ajax
+        var items_html = ''; //Html to print in the section packed items
+        const sp_id = jQuery('#tracking-providers').val();
+        const sp_code = jQuery('#tracking-code-input').val();
+
+        await jQuery('#picklist .sep-order-product-item').not('.packed').each((index, item) => {
+            const current_quant = jQuery(item).find('.current-quantity').text();
+            if(current_quant === 0){
+                return; //Skip if the quantity is 0
+            }
+            const total_quant = jQuery(item).find('.total-quantity').text();
+            const packed_class = (current_quant === total_quant) ? 'packed' : 'partly-packed';
+            items_send[index] = {
+                id: jQuery(item).data('line-id'),
+                quant: current_quant,
+            };
+            //Give the packed class to avoid duple packing
+            jQuery(item).addClass(packed_class);
+
+            //Apply the template to the item
+            items_html = items_html + jQuery(item).html();
+        });
+
+        //Validation
+        if (sp_id !== 'none' && (empty(sp_id) || empty(sp_code))) {
+            sep_scripts.display_error(__('No barcode or service provider given', 'sep'), '#tracking-codes-errors');
+            return false;
+        }
+        if (empty(order_id)) {
+            sep_scripts.display_error(__('No order ID found', 'sep'), '#tracking-codes-errors');
+            return false;
+        }
+        if (empty(items_send)) {
+            sep_scripts.display_error(__('No items found', 'sep'), '#tracking-codes-errors');
+            return false;
+        }
+
+        //Update the order via ajax
+        let send_data = new FormData();
+        send_data.append('action', 'sep_ajax_orders');
+        send_data.append('do', 'pack_order');
+        send_data.append('order_id', order_id);
+        send_data.append('sp_id', sp_id);
+        send_data.append('sp_code', sp_code);
+        send_data.append('items', JSON.stringify(items_send));
+        const ajax_response = await this.load_ajax(send_data);
+        const has_errors = this.get_ajax_error_answer(ajax_response);
+        if (!empty(has_errors)) {
+            sep_scripts.display_error(__('Updating the order failed: %s', 'sep').replace('%s', has_errors),
+                '#tracking-codes-errors'
+            );
+            return false;
+        }
+
+        //Add the items to the packed items
+        const packed_container_template = await sep_scripts.get_template('packed_container', 'packed-container.html', 'templates/backend/components/');
+
+        let item = sep_scripts.add_templage_args(packed_container_template, {
+            items: items_html,
+            tracking_code: sp_code,
+            service_provider: sep_scripts.get_shipping_provider_by_id(sp_id).name,
+            tracking_link: sep_scripts.get_tracking_link(sp_id, sp_code),
+        });
+        jQuery('#packed-container').append(item);
+        return true;
     }
 
 

@@ -20,7 +20,7 @@ class SepAjax extends DaAjaxHandler
         $do = $this->get_ajax_do();
         $order_handler = new SepOrder;
         switch ($do) {
-            case 'remove_tracking_code':
+            /*case 'remove_tracking_code':
                 $order_id = $this->get_ajax_data('order_id');
                 $sp_id = $this->get_ajax_data('sp_id');
                 $remove_tracking = $order_handler->remove_tracking_data($order_id, $sp_id);
@@ -37,6 +37,18 @@ class SepAjax extends DaAjaxHandler
                 $add_tracking = $order_handler->add_tracking_data($order_id, $barcode, $provider);
                 if ($add_tracking === false) {
                     $this->set_error(__('Tracking code could not be added to the order:', 'sep') . $add_tracking);
+                }else{
+                    $this->set_success(__('Tracking code added to order','sep'));
+                }
+                break;*/
+            case 'pack_order':
+                $order_id = $this->get_ajax_data('order_id');
+                $sp_id = $this->get_ajax_data('sp_id');
+                $sp_code = $this->get_ajax_data('sp_code');
+                $items = $this->get_ajax_data('items');
+                $packed = $order_handler->add_packed_order($order_id, $sp_id, $sp_code, $items);
+                if ($packed === false) {
+                    $this->set_error(__('Could not add the tracking code the order:', 'sep') . $packed);
                 }else{
                     $this->set_success(__('Tracking code added to order','sep'));
                 }
