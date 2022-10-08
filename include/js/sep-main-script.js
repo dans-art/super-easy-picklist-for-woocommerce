@@ -944,7 +944,7 @@ let sep_scripts = {
             sp_code: sp_code,
             sp_id: sp_id,
             sp_name: sp_name,
-            date_packed: __('Just now', 'sep'),
+            date_packed: 'now',
         }
         sep_scripts.loaded_orders[order_index].tracking.push(tracking_obj);
 
@@ -978,7 +978,9 @@ let sep_scripts = {
     convert_date(timestamp) {
         const packed_date = new Date(timestamp * 1000); //Converting seconds to milliseconds
         //Get the format
-        const format = (!empty(window.sep_date_format)) ? window.sep_date_format : 'Y-m-d H:i:s';
+        if(timestamp === 'now'){
+            return __('Just now','sep');
+        }
         return wp.date.date(window.sep_date_format, packed_date);
     }
 
