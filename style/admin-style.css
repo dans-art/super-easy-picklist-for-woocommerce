@@ -177,6 +177,10 @@
   margin-bottom: 1em;
 }
 
+#sep_order_meta_box .packed-date {
+  margin-bottom: 0.5em;
+}
+
 /* Settings*/
 #sep-settings .sep-tracking-item {
   display: flex;

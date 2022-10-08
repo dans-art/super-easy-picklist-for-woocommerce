@@ -4,7 +4,10 @@
  * Author: Dan's Art
  * Author URI: http://dev.dans-art.ch
  * @todo: Add function to delete the package form the order
+ * @todo: use strict "use strict";
  */
+ 
+
 let sep_scripts = {
 
     loaded_orders: [],
@@ -281,6 +284,7 @@ let sep_scripts = {
                     tracking_code: item.sp_code,
                     service_provider: empty(item.sp_name) ? __('No shipping provider defined', 'sep') : item.sp_name,
                     tracking_link: sep_scripts.get_tracking_link(item.sp_id, item.sp_code),
+                    date: !empty(item.date_packed) ? sep_scripts.convert_date(item.date_packed) : ''
                 });
             }
         }
@@ -939,7 +943,8 @@ let sep_scripts = {
             items_packed: items_send,
             sp_code: sp_code,
             sp_id: sp_id,
-            sp_name: sp_name
+            sp_name: sp_name,
+            date_packed: __('Just now', 'sep'),
         }
         sep_scripts.loaded_orders[order_index].tracking.push(tracking_obj);
 
@@ -963,6 +968,18 @@ let sep_scripts = {
             packed_count += parseInt(jQuery(item).text());
         }
         return (packed_count > 0) ? total_packed - packed_count : total_packed;
+    },
+
+    /**
+     * Converts a timestamp into a readable format
+     * 
+     * @param {int} timestamp Time in seconds
+     */
+    convert_date(timestamp) {
+        const packed_date = new Date(timestamp * 1000); //Converting seconds to milliseconds
+        //Get the format
+        const format = (!empty(window.sep_date_format)) ? window.sep_date_format : 'Y-m-d H:i:s';
+        return wp.date.date(window.sep_date_format, packed_date);
     }
 
 };

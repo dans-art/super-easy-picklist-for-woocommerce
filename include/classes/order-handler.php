@@ -145,10 +145,12 @@ class SepOrder
             return __('This order has no tracking data so far.', 'sep');
         }
         $template =  DaTemplateHandler::load_template_to_var('packed-container.html', 'backend/components');
+        $format = get_option('date_format') . ' ' .get_option('time_format');
 
         foreach ($tracking_data as $index => $item) {
             $sp_name = (empty($item['sp_name'])) ? __('No tracking code', 'sep') : $item['sp_name'];
             $link = (empty($item['sp_code'])) ? '' : $this->get_tracking_link($item['sp_id'], $item['sp_code']);
+            $date_packed = (empty($item['date_packed'])) ? '' : wp_date($format, $item['date_packed']);
             $items = "";
             //Loop the packed items
             if (is_object($item['items_packed'])) {
@@ -165,6 +167,7 @@ class SepOrder
             $item_template = str_replace('{{tracking_code}}', $item['sp_code'], $item_template);
             $item_template = str_replace('{{tracking_link}}', $link, $item_template);
             $item_template = str_replace('{{items}}', $items, $item_template);
+            $item_template = str_replace('{{date}}', $date_packed, $item_template);
             $out .= $item_template;
         }
 
@@ -283,7 +286,8 @@ class SepOrder
             'sp_id' => $sp_id,
             'sp_name' => $provider_name,
             'sp_code' => $sp_code,
-            'items_packed' => json_decode($items)
+            'items_packed' => json_decode($items),
+            'date_packed' => time(),
         ];
         array_push($tracking_data, $new_data);
         $tracking_data = maybe_serialize($tracking_data);

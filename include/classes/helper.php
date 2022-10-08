@@ -199,7 +199,7 @@ class SepHelper
     public function sep_enqueue_admin_scripts()
     {
         $min = ($this->is_dev_server()) ? '' : '.min';
-        wp_enqueue_script('sep-main-script', SEP_PLUGIN_DIR_URL . 'include/js/sep-main-script' . $min . '.js', array('jquery'), $this->version);
+        wp_enqueue_script('sep-main-script', SEP_PLUGIN_DIR_URL . 'include/js/sep-main-script' . $min . '.js', array('jquery','wp-date'), $this->version);
         wp_set_script_translations('sep-main-script', 'sep', SEP_PATH . "languages");
     }
 
@@ -212,8 +212,11 @@ class SepHelper
     {
         if ($this->ajax_included === false) {
             //Add dynamic script to header
+            $date_format = get_option('date_format') . ' ' .get_option('time_format');
+
             echo "<script type='text/javascript' defer='defer'>
                 var ajaxurl = '" . admin_url('admin-ajax.php') . "';
+                var sep_date_format = '" . $date_format . "';
                 var sep_plugin_dir_url = '" . SEP_PLUGIN_DIR_URL . "';
                 </script>";
             $this->ajax_included = true;
