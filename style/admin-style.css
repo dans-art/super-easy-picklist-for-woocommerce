@@ -141,6 +141,12 @@
   display: block;
 }
 
+#order-section-content #packed-container .packed-inner-container {
+  border: 1px solid;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+
 #order-section-content #packed-container .product-actions {
   display: none;
 }
@@ -162,6 +168,13 @@
 
 #order-section-content button {
   cursor: pointer;
+}
+
+/* Meta box*/
+#sep_order_meta_box .packed-inner-container {
+  background-color: #efefef;
+  padding: 1em;
+  margin-bottom: 1em;
 }
 
 /* Settings*/
@@ -209,5 +222,10 @@
 #sep-settings #sep-add-shipping-provider-container button {
   flex-basis: 20%;
   height: 2.5em;
+}
+
+/*Errors and messages*/
+#pick-error {
+  color: red;
 }
 /*# sourceMappingURL=admin-style.css.map */

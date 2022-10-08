@@ -3,6 +3,7 @@
  * File description: Various Javascript functions.
  * Author: Dan's Art
  * Author URI: http://dev.dans-art.ch
+ * @todo: Add function to delete the package form the order
  */
 let sep_scripts = {
 
@@ -112,7 +113,8 @@ let sep_scripts = {
 
         //Change of the shipping provider selector
         jQuery('#finish-package').on('click', (e) => {
-            this.pack_order();
+            const order_index = jQuery(e.currentTarget).data('order-index');
+            this.pack_order(order_index);
         });
 
     },
@@ -201,11 +203,11 @@ let sep_scripts = {
 
     async load_single_order(order_id) {
         //Find the order in the loaded orders
-        this.loaded_orders.forEach(async function (order_obj) {
+        for (const [index, order_obj] of Object.entries(this.loaded_orders)) {
             if (order_obj.id === order_id) {
-                var order_items = await sep_scripts.display_products_items_box(order_obj.line_items, order_obj); //Format the products
+                var order_items = await sep_scripts.display_products_items_box(order_obj.line_items, index); //Format the products
                 var tracking_input = await sep_scripts.get_tracking_input(order_obj.tracking); //Format the tracking codes
-                var packed_products = await sep_scripts.display_packed_products_box(order_obj.tracking); //Format the tracking codes
+                var packed_products = await sep_scripts.display_packed_products_box(order_obj.tracking, index); //Format the tracking codes
                 var status = await sep_scripts.display_status_box(order_obj); //Returns the status box
 
                 await sep_scripts.get_template('single_order', 'single-order.html', 'templates/backend/components/').then(function (content) {
@@ -221,6 +223,7 @@ let sep_scripts = {
                                 status_content: status,
                                 total_items: Object.keys(order_obj.line_items).length,
                                 packed_content: packed_products,
+                                order_index: index,
                                 //Titles
                                 order_title: __('Order', 'sep'),
                                 edit_order_text: __('Edit order', 'sep'),
@@ -251,16 +254,17 @@ let sep_scripts = {
                     sep_scripts.maybe_display_tracking_input();
                 });
             }
-        })
+        }
     },
 
     /**
      * Renders the tracking data box
      * 
+     * @param {int} order_index The index of the order in the loaded_orders array
      * @param {object} tracking_data The tracking data as an object e.g. ([barcode:1231564513, provider: swisspost])
      * @returns string The Tracking info as html code
      */
-    async display_packed_products_box(tracking_data) {
+    async display_packed_products_box(tracking_data, order_index) {
         const packed_container_template = await sep_scripts.get_template('packed_container', 'packed-container.html', 'templates/backend/components/');
 
         var output = '';
@@ -270,12 +274,12 @@ let sep_scripts = {
         if (!empty(tracking_data)) {
             for (const item of tracking_data) {
                 //Get the products as html
-                const items_html = await sep_scripts.get_tracked_products(item.items_packed);
+                const items_html = await sep_scripts.get_tracked_products(item.items_packed, order_index);
                 //For each package
                 output = output + sep_scripts.add_templage_args(packed_container_template, {
                     items: items_html,
                     tracking_code: item.sp_code,
-                    service_provider: empty(item.sp_name) ? __('No shipping provider defined','sep') : item.sp_name,
+                    service_provider: empty(item.sp_name) ? __('No shipping provider defined', 'sep') : item.sp_name,
                     tracking_link: sep_scripts.get_tracking_link(item.sp_id, item.sp_code),
                 });
             }
@@ -287,16 +291,17 @@ let sep_scripts = {
      * Links the items packed with the items form the order
      * 
      * @param {object} items_packed The items packed
+     * @param {int} order_index The index of the order in the loaded_orders array
      * @returns {string} The products as html
      */
-    async get_tracked_products(items_packed) {
+    async get_tracked_products(items_packed, order_index = 0) {
         const list_item_template = await sep_scripts.get_template('list_products', 'list-products.html', 'templates/backend/components/');
 
         if (empty(items_packed)) {
             return false;
         }
         var output = '';
-        const order_items = sep_scripts.loaded_orders[0].line_items;
+        const order_items = sep_scripts.loaded_orders[order_index].line_items;
         jQuery.each(items_packed, (index, packed) => {
             output = output + sep_scripts.add_templage_args(list_item_template, {
                 line_id: packed.id,
@@ -311,6 +316,39 @@ let sep_scripts = {
         return output;
     },
 
+    /**
+     * Gets the current packed count.
+     * If there are items in the #packed-container, it will take the quantity form there.
+     * Otherwise the quantity will be taken form the ajax response
+     * 
+     * @param {int} line_id The line id of the order
+     * @param {int} order_index The order index of the loaded order
+     * @returns {int} The items packed
+     */
+    get_packed_count(line_id, order_index = 0) {
+        var item_count = 0;
+        var packed_items = jQuery(`#packed-container [data-line-id=${line_id}] .current-quantity`);
+        if (!empty(packed_items)) {
+            for (item of packed_items) {
+                const quant = parseInt(jQuery(item).text());
+                item_count += quant;
+            }
+            return item_count;
+        }
+        //No items packed so far
+        const order_items = sep_scripts.loaded_orders[order_index].tracking;
+        //Loop the packages
+        for (item of order_items) {
+            //Loop the package contents
+            for (const [p_index, p_item] of Object.entries(item.items_packed)) {
+                if (parseInt(line_id) === p_item.id) {
+                    item_count += p_item.quant;
+                }
+            }
+        }
+        return item_count;
+    },
+
 
 
     /**
@@ -321,7 +359,6 @@ let sep_scripts = {
      */
     async get_tracking_input(tracking_data) {
         var template = await sep_scripts.get_template('tracking_input', 'tracking-input.html', 'templates/backend/components/');
-        var output = '';
         if (typeof tracking_data !== 'object') {
             return __('Error while loading tracking data. Wrong format.', 'sep');
         }
@@ -517,7 +554,7 @@ let sep_scripts = {
      * @returns string|false false on error, string with the tracking url on success
      */
     get_tracking_link(sp_id, sp_code) {
-        if(empty(sp_code)){
+        if (empty(sp_code)) {
             return '';
         }
         if (empty(sep_scripts.shipping_providers)) {
@@ -565,10 +602,10 @@ let sep_scripts = {
      * Loads the template list-products.html and formats the data
      * 
      * @param {object} products All the products as object
-     * @param {object} order_obj The complete order object
+     * @param {object} order_index The index of the order.
      * @returns {string} Html string
      */
-    async display_products_items_box(products, order_obj) {
+    async display_products_items_box(products, order_index = 0) {
         var output = '';
         if (typeof products !== 'object') {
             return __('Error while loading products. Wrong format.', 'sep');
@@ -580,7 +617,7 @@ let sep_scripts = {
                 sku: item.sku,
                 product_id: item.product_id,
                 name: item.name,
-                quantity: 0,
+                quantity: sep_scripts.get_packed_count(item.id, order_index),
                 total_quantity: item.quantity,
                 product_meta: sep_scripts.get_product_meta(item.meta_data),
             });
@@ -668,8 +705,13 @@ let sep_scripts = {
      * Adds an error message to given field
      * @param {string} message The error message
      * @param {string} field The field as css selector
+     * @param {bool} replace If true, the error will replace existing errors
      */
-    display_error(message, field) {
+    display_error(message, field, replace = false) {
+        if (replace) {
+            jQuery(field).html(message);
+            return;
+        }
         jQuery(field).append(message);
     },
     /**
@@ -732,6 +774,9 @@ let sep_scripts = {
         }
         sep_scripts.picklist_check_quantity(line_id);
         sep_scripts.update_picked_count();
+
+        //Set the item class to updated
+        jQuery(`#picklist [data-line-id=${line_id}]`).addClass('sep-updated');
         return;
     },
 
@@ -739,10 +784,18 @@ let sep_scripts = {
      * Changes the current item total to the total items count
      */
     picklist_pack_all() {
-        jQuery('.sep-order-product-item').each((index, item) => {
+        jQuery('#picklist .sep-order-product-item').each((index, item) => {
             const total = jQuery(item).find('.total-quantity').text();
+            const current = jQuery(item).find('.current-quantity').text();
+            const line_id = jQuery(item).data('line-id');
+            //Don't change anything if the total amount is already picked
+            if (total === current) {
+                return;
+            }
             jQuery(item).find('.current-quantity').text(total);
-            this.picklist_check_quantity(jQuery(item).data('line-id')); //Adds the class of sep-vaild
+            this.picklist_check_quantity(line_id); //Adds the class of sep-vaild
+            //Set the item class to updated
+            jQuery(`#picklist [data-line-id=${line_id}]`).addClass('sep-updated');
         });
         this.update_picked_count();
 
@@ -766,6 +819,28 @@ let sep_scripts = {
         if (current_quant > total_quant) {
             jQuery(`#picklist [data-line-id=${line_id}] .quantity`).addClass('sep-error');
         }
+        //Checks all the fields for errors
+        this.picklist_check_errors();
+        return;
+    },
+    /**
+     * Checks all the items for quantity errors
+     */
+    picklist_check_errors() {
+        var total_errors = 0;
+        for (item of jQuery('#picklist .sep-order-product-item')) {
+            const current = parseInt(jQuery(item).find('.current-quantity').text());
+            const total = parseInt(jQuery(item).find('.total-quantity').text());
+            if (current > total) {
+                total_errors++;
+            }
+        }
+        if (total_errors !== 0) {
+            sep_scripts.display_error(__('You have picked on %s positions to many items', 'sep').replace('%s', total_errors), '#pick-error', true);
+        }
+        else {
+            jQuery('#pick-error').html(''); //Reset the error field
+        }
         return;
     },
 
@@ -773,8 +848,16 @@ let sep_scripts = {
      * Updates the picked count by counting all the line items with the sep-valid class
      */
     update_picked_count() {
-        var packed = jQuery('.sep-order-product-item .quantity.sep-valid').length;
-        jQuery('#pick-info .items-packed').text(packed);
+        const packed = jQuery('#picklist .sep-order-product-item');
+        var packed_count = 0;
+        var total_packed = 0;
+        for (item of packed) {
+            packed_count += parseInt(jQuery(item).find('.current-quantity').text());
+            total_packed += parseInt(jQuery(item).find('.total-quantity').text());
+        }
+        jQuery('#pick-info .items-packed').text(packed_count);
+        jQuery('#pick-info .items-total').text(total_packed);
+        return;
     },
 
     /**
@@ -791,32 +874,33 @@ let sep_scripts = {
     /**
      * Adds the items packed to the order and assigns it to the barcode given.
      * 
+     * @param {int} order_index Index of the order in the order_obj
+     * 
      * @returns void
      */
-    async pack_order() {
+    async pack_order(order_index = 0) {
         //Get all items
         const order_id = jQuery('#order-information').data('order-id');
         var items_send = {}; //The Items to send via ajax
-        var items_html = ''; //Html to print in the section packed items
         const sp_id = jQuery('#tracking-providers').val();
         const sp_code = jQuery('#tracking-code-input').val();
+        const sp_name = sep_scripts.get_shipping_provider_by_id(sp_id).name;
 
-        await jQuery('#picklist .sep-order-product-item').not('.packed').each((index, item) => {
-            const current_quant = jQuery(item).find('.current-quantity').text();
-            if(current_quant === 0){
+        await jQuery('#picklist .sep-order-product-item').has('.sep-updated').each((index, item) => {
+            const current_quant = parseInt(jQuery(item).find('.current-quantity').text());
+            if (current_quant === 0) {
                 return; //Skip if the quantity is 0
             }
-            const total_quant = jQuery(item).find('.total-quantity').text();
+            const total_quant = parseInt(jQuery(item).find('.total-quantity').text());
             const packed_class = (current_quant === total_quant) ? 'packed' : 'partly-packed';
+            const line_id = jQuery(item).data('line-id');
             items_send[index] = {
-                id: jQuery(item).data('line-id'),
-                quant: current_quant,
+                id: line_id,
+                quant: sep_scripts.get_partly_packed_amount(current_quant, line_id),
             };
             //Give the packed class to avoid duple packing
             jQuery(item).addClass(packed_class);
 
-            //Apply the template to the item
-            items_html = items_html + jQuery(item).html();
         });
 
         //Validation
@@ -850,19 +934,36 @@ let sep_scripts = {
             return false;
         }
 
-        //Add the items to the packed items
-        const packed_container_template = await sep_scripts.get_template('packed_container', 'packed-container.html', 'templates/backend/components/');
+        //Add the packed items to the order_obj
+        tracking_obj = {
+            items_packed: items_send,
+            sp_code: sp_code,
+            sp_id: sp_id,
+            sp_name: sp_name
+        }
+        sep_scripts.loaded_orders[order_index].tracking.push(tracking_obj);
 
-        let item = sep_scripts.add_templage_args(packed_container_template, {
-            items: items_html,
-            tracking_code: sp_code,
-            service_provider: sep_scripts.get_shipping_provider_by_id(sp_id).name,
-            tracking_link: sep_scripts.get_tracking_link(sp_id, sp_code),
-        });
-        jQuery('#packed-container').append(item);
+        //Reload the items in the packed section
+        const reloaded_packed_products = await sep_scripts.display_packed_products_box(sep_scripts.loaded_orders[order_index].tracking, order_index);
+
+        jQuery('#packed-container').html(reloaded_packed_products);
         return true;
-    }
+    },
 
+    /**
+     * Calculates the newly packed amount by subtract the picklist amount with packed amount  
+     * @param {int} total_packed The total amount packed in the current packlist
+     * @param {int} line_id The line ID
+     * @returns {int}
+     */
+    get_partly_packed_amount(total_packed, line_id) {
+        var packed_count = 0;
+        let packed = jQuery(`#packed-container [data-line-id=${line_id}] .current-quantity`);
+        for (item of packed) {
+            packed_count += parseInt(jQuery(item).text());
+        }
+        return (packed_count > 0) ? total_packed - packed_count : total_packed;
+    }
 
 };
 

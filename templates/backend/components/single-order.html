@@ -25,12 +25,14 @@
         {{picklist_content}}
         <div id="pick-info">
             <span>{{items_packed_text}}</span> <span class="items-packed">0</span> <span>{{items_packed_of_text}}</span>
-            <span>{{total_items}}</span>
+            <span class="items-total">{{total_items}}</span>
+        </div>
+        <div id="pick-error">
         </div>
         <div id="tracking-input">
             <h2>{{tracking_title}}</h2>
             {{tracking_input}}
-            <button class='button' id="finish-package">{{finish_package_text}}</button>
+            <button class='button' id="finish-package" data-order-index="{{order_index}}">{{finish_package_text}}</button>
         </div>
     </div>
     <div id="packed-container">

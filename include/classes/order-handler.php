@@ -144,26 +144,80 @@ class SepOrder
         if (empty($tracking_data)) {
             return __('This order has no tracking data so far.', 'sep');
         }
+        $template =  DaTemplateHandler::load_template_to_var('packed-container.html', 'backend/components');
 
         foreach ($tracking_data as $index => $item) {
+            $sp_name = (empty($item['sp_name'])) ? __('No tracking code', 'sep') : $item['sp_name'];
             $link = (empty($item['sp_code'])) ? '' : $this->get_tracking_link($item['sp_id'], $item['sp_code']);
-            $name = (empty($item['sp_name'])) ?
-                __('No tracking code', 'sep') :
-                "<a href='$link' target='_blank'>" . $item['sp_name'] . " - " . $item['sp_code'] . "</a>";
-            $out .= $name . '<br/>';
+            $items = "";
             //Loop the packed items
             if (is_object($item['items_packed'])) {
                 foreach ($item['items_packed'] as $index => $packed_item) {
                     if (is_object($order_items[$packed_item->id])) {
                         $name = $order_items[$packed_item->id]->get_name();
                         $total = $order_items[$packed_item->id]->get_quantity();
-                        $out .= $packed_item->quant . '/' . $total  . ' - ' . $name . '<br/>';
+                        $items .= '<div>' . $packed_item->quant . '/' . $total  . ' - ' . $name . '</div>';
+                    }
+                }
+            }
+            $item_template = $template;
+            $item_template = str_replace('{{service_provider}}', $sp_name, $item_template);
+            $item_template = str_replace('{{tracking_code}}', $item['sp_code'], $item_template);
+            $item_template = str_replace('{{tracking_link}}', $link, $item_template);
+            $item_template = str_replace('{{items}}', $items, $item_template);
+            $out .= $item_template;
+        }
+
+        $picked = $this->check_amount_packed($order);
+        if ($picked['current'] === $picked['total']) {
+            $out .= __('Super! All items picked', 'sep');
+        } else {
+            $out .=  sprintf(__('%d of %d items picked', 'sep'), $picked['current'], $picked['total']);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Returns the currently packed amount of items
+     *
+     * @param array $tracking_data - The tracking data from $this->get_tracking_data()
+     * @param int $line_id - The Id of the line item
+     * @return int The total packed amount
+     */
+    public function get_packed_amount($tracking_data, $line_id)
+    {
+        $total = 0;
+        foreach ($tracking_data as $index => $item) {
+            //Loop the packed items
+            if (is_object($item['items_packed'])) {
+                foreach ($item['items_packed'] as $index => $packed_item) {
+                    if ($packed_item->id === intval($line_id)) {
+                        $total += $packed_item->quant;
                     }
                 }
             }
         }
+        return $total;
+    }
 
-        return $out;
+    /**
+     * Checks how many items are packed
+     *
+     * @param object $order The WC_Order object
+     * @return array The total and current item count
+     */
+    public function check_amount_packed($order)
+    {
+        $tracking_data = $this->get_tracking_data($order->get_id());
+        $order_items = $order->get_items();
+        $total = 0;
+        $current = 0;
+        foreach ($order_items as $index => $item) {
+            $total += $item->get_quantity();
+            $current += $this->get_packed_amount($tracking_data, $index);
+        }
+        return ['current' => $current, 'total' => $total];
     }
 
     /**
