@@ -71,6 +71,16 @@ class SepAjax extends DaAjaxHandler
                     $this->set_error(sprintf(__('No order with the ID %s found', 'sep'), $order_id));
                 }
                 break;
+            case 'update_status':
+                $order_id = $this->get_ajax_data('order_id');
+                $status = $this->get_ajax_data('status');
+                $order = $order_handler->set_status($order_id, $status);
+                if ($order === true) {
+                    $this->set_success($order);
+                } else {
+                    $this->set_error(sprintf(__('Failed to update the order status: %s', 'sep'), $order));
+                }
+                break;
 
             default:
                 # code...

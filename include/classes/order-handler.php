@@ -32,14 +32,15 @@ class SepOrder
             'status' => $status,
             'limit' => $limit,
         );
-        $orders = wc_get_orders($args); //WC_Order
+        $orders_obj = wc_get_orders($args); //WC_Order
         //Filter all the elements not needed.
-        if (empty($orders)) {
+        if (empty($orders_obj)) {
             return false;
         }
         $sp = $setting_handler->get_shipping_providers();
-        $orders = $this->get_additional_order_data($orders);
-        return ['orders' => $orders, 'shipping_providers' => $sp];
+        $orders = $this->get_additional_order_data($orders_obj);
+        $order_status = $this->get_order_status();
+        return ['orders' => $orders, 'shipping_providers' => $sp, 'order_status' => $order_status];
     }
     /**
      * Loads a single order
@@ -50,14 +51,15 @@ class SepOrder
     {
         $setting_handler = new SepSettings;
 
-        $order = wc_get_order($id); //WC_Order
+        $order_obj = wc_get_order($id); //WC_Order
         //Filter all the elements not needed.
-        if (empty($order)) {
+        if (empty($order_obj)) {
             return false;
         }
         $sp = $setting_handler->get_shipping_providers();
-        $order = $this->get_additional_order_data([$order]);
-        return ['orders' => $order, 'shipping_providers' => $sp];
+        $order = $this->get_additional_order_data([$order_obj]);
+        $order_status = $this->get_order_status();
+        return ['orders' => $order, 'shipping_providers' => $sp, 'order_status' => $order_status];
     }
 
     /**
@@ -82,12 +84,35 @@ class SepOrder
             }
             //Add the tracking data
             $order_data['tracking'] = $this->get_tracking_data($order->get_id());
+
             return $order_data;
         }, $orders);
 
         return $orders;
     }
 
+    /**
+     * Returns all the order statuses for an order
+     *
+     * @return array The order statuses
+     */
+    public function get_order_status(){
+        return wc_get_order_statuses();
+    }
+
+    public function set_status($order_id, $status){
+        //load the order
+        $order_obj = wc_get_order($order_id); //WC_Order
+        if (empty($order_obj)) {
+            return __('No order found','sep');
+        }
+        $change = $order_obj -> set_status($status);
+        if($change['from'] === $change['to']){
+            return true; //Skip if no changes
+        }
+        $order_obj -> save();
+        return true;
+    }
     /**
      * Returns the nicename for the meta data. This works only with meta data, which are defined in "Attributes"
      *
@@ -145,7 +170,7 @@ class SepOrder
             return __('This order has no tracking data so far.', 'sep');
         }
         $template =  DaTemplateHandler::load_template_to_var('packed-container.html', 'backend/components');
-        $format = get_option('date_format') . ' ' .get_option('time_format');
+        $format = get_option('date_format') . ' ' . get_option('time_format');
 
         foreach ($tracking_data as $index => $item) {
             $sp_name = (empty($item['sp_name'])) ? __('No tracking code', 'sep') : $item['sp_name'];
