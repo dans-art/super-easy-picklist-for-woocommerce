@@ -6,6 +6,7 @@
  * @todo: Add function to delete the package form the order
  * @todo: use strict "use strict";
  * @todo: Split sep_scripts and import the modules tracking, order, template, helper.
+ * @todo: Add feedback on successful status update
  */
 
 
@@ -643,9 +644,9 @@ let sep_scripts = {
     async display_status_box(order_obj) {
         //Format the order statuses
         let status_options = '';
-    
+
         for (const [key, item_name] of Object.entries(this.order_status)) {
-            const selected = (order_obj.status === key ||'wc-' + order_obj.status === key) ? 'selected' : '';
+            const selected = (order_obj.status === key || 'wc-' + order_obj.status === key) ? 'selected' : '';
             status_options += `<option value="${key}" ${selected}>${item_name}</option>`;
         }
         var template = await sep_scripts.get_template('status_box', 'status_box.html', 'templates/backend/components/');
@@ -736,6 +737,23 @@ let sep_scripts = {
         }
         jQuery(field).append(message);
     },
+
+    /**
+     * 
+     * @param {string} message The Message to display
+     * @param {string} field The field (#field_id)
+     * @param {int} hide_after After how many seconds the message should be hidden
+     */
+    display_success(message, field, hide_after = 5){
+        const rand_id = field + Math.floor(Math.random() * 10000000);
+        jQuery(field).append(`<span id="${rand_id}">`+message+'</span>');
+        if(hide_after !== 0){
+            setTimeout(function (){
+                debugger;
+            }, hide_after * 1000, rand_id);
+        }
+    },
+
     /**
      * Returns the message from the ajax response
      * @param {string} data The data from the ajax request as JSON string
@@ -898,7 +916,7 @@ let sep_scripts = {
      * 
      * @returns The loaded order ID
      */
-    get_loaded_order_id(){
+    get_loaded_order_id() {
         return jQuery('#order-information').data('order-id');
     },
 
@@ -995,7 +1013,7 @@ let sep_scripts = {
      * Updates the status of the order. Called when the status dropdown changes
      * @returns bool
      */
-    async update_status(){
+    async update_status() {
         const order_id = this.get_loaded_order_id();
         const new_status = jQuery('#order-status').val();
 
@@ -1013,6 +1031,7 @@ let sep_scripts = {
             );
             return false;
         }
+        sep_scripts.display_success(__('Status updated:', 'sep'), '#status-success');
     },
 
     /**
